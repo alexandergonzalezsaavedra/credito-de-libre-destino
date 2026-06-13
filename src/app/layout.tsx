@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import '../globals.css';
-import { Footer, Header } from '../components';
+import './globals.css';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -14,21 +13,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Alexander González - Digital Application for Unsecured Loan',
-  description: 'Digital Application for Unsecured Loan',
+  title: 'Alexander González',
+  description: 'Solicitud Digital de Crédito de Libre Destino',
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='en'>
+    <html suppressHydrationWarning data-scroll-behavior='smooth'>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Header locale='en' />
         {children}
-        <Footer />
       </body>
     </html>
   );

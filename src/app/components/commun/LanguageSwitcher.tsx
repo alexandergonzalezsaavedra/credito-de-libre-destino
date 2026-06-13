@@ -1,17 +1,10 @@
 'use client';
-
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-
-// Mapeo de rutas personalizadas (español -> inglés)
 const routeMapping: Record<string, string> = {
   '/': '/en',
-  '/proyectos-ar': '/en/projects-ar',
-  '/proyectos-ar/detalles-de-proyecto': '/en/projects-ar/project-details',
 };
-
-// Mapeo inverso (inglés -> español)
 const reverseRouteMapping: Record<string, string> = Object.entries(
   routeMapping,
 ).reduce(
@@ -21,15 +14,12 @@ const reverseRouteMapping: Record<string, string> = Object.entries(
   },
   {} as Record<string, string>,
 );
-
 type Props = {
   locale: 'es' | 'en';
 };
-
 const LanguageSwitcher = ({ locale }: Props) => {
   const pathname = usePathname();
   const isEnglish = locale === 'en';
-
   const getAlternatePath = () => {
     if (isEnglish) {
       if (reverseRouteMapping[pathname]) {
@@ -44,17 +34,13 @@ const LanguageSwitcher = ({ locale }: Props) => {
       return `/en${pathname}`;
     }
   };
-
   const alternatePath = getAlternatePath();
   const alternateLabel = isEnglish ? 'Español' : 'English';
   const alternateFlag = isEnglish ? '🇪🇸' : '🇺🇸';
-
   const [isClient, setIsClient] = useState(false);
-
   useEffect(() => {
     setIsClient(true);
   }, []);
-
   return (
     <>
       {isClient && (
@@ -79,5 +65,4 @@ const LanguageSwitcher = ({ locale }: Props) => {
     </>
   );
 };
-
 export default LanguageSwitcher;
