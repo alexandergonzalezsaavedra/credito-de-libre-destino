@@ -11,7 +11,8 @@ const requirements = [
   {
     icon: IconUserCheck,
     title: 'Mayor de edad',
-    description: 'Ser ciudadano colombiano mayor de 18 años con cédula vigente.',
+    description:
+      'Ser ciudadano colombiano mayor de 18 años con cédula vigente.',
   },
   {
     icon: IconBriefcase,
@@ -38,7 +39,6 @@ const RequirementsSection = () => {
     <section className='py-16 px-4'>
       <div className='max-w-5xl mx-auto'>
         <div className='flex flex-col lg:flex-row gap-12 items-center'>
-
           <div className='flex-1'>
             <Chip
               color='primary'
@@ -61,19 +61,24 @@ const RequirementsSection = () => {
 
           <div className='flex-1 w-full'>
             <ul className='flex flex-col gap-4'>
-              {requirements.map(({ icon: Icon, title, description }, i) => (
+              {requirements.map(({ icon: Icon, title, description }) => (
                 <li
                   key={title}
                   className='flex items-start gap-4 bg-white/70 dark:bg-white/10 rounded-2xl p-4 shadow-sm'
                 >
                   <div className='flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary shrink-0'>
-                    <Icon size={20} stroke={1.8} />
+                    <Icon
+                      size={20}
+                      stroke={1.8}
+                    />
                   </div>
                   <div className='flex-1'>
                     <p className='font-semibold text-gray-800 dark:text-gray-100 text-sm'>
                       {title}
                     </p>
-                    <p className='text-xs text-gray-500 dark:text-gray-400 mt-0.5'>{description}</p>
+                    <p className='text-xs text-gray-500 dark:text-gray-400 mt-0.5'>
+                      {description}
+                    </p>
                   </div>
                   <IconCircleCheck
                     size={18}

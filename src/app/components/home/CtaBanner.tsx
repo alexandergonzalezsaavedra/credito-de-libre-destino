@@ -16,7 +16,7 @@ const CtaBanner = () => {
     <section className='py-16 px-4'>
       <div className='max-w-4xl mx-auto'>
         <div className='relative bg-primary rounded-3xl overflow-hidden p-10 text-center shadow-xl'>
-          <div className='absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_top_right,_white_0%,_transparent_60%)]' />
+          <div className='absolute inset-0 opacity-10' />
 
           <h2 className='text-3xl sm:text-4xl font-extrabold text-white mb-3'>
             ¿Listo para solicitarlo?
