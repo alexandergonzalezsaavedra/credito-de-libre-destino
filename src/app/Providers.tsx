@@ -1,7 +1,7 @@
 'use client';
 import { HeroUIProvider, ToastProvider } from '@heroui/react';
 import { Provider } from 'react-redux';
-import { store } from './store/store';
+import { store } from './store';
 import { useEffect } from 'react';
 import { setThemeSlice } from './store/commun/selectThemeSlice';
 

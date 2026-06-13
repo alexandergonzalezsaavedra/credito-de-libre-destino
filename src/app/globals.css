@@ -2,6 +2,12 @@
 @plugin './hero.ts';
 @source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 body {
     background: #d4e0f9;
+}
+
+.dark body {
+    background: #0d1117;
 }
