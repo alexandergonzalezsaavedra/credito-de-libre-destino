@@ -51,7 +51,7 @@ const HeroSection = () => {
             </Button>
             <Button
               as={Link}
-              href='/ingreso'
+              href='/solicitar-credito'
               variant='bordered'
               size='lg'
               radius='full'

@@ -7,17 +7,11 @@ import { setThemeSlice } from './store/commun/selectThemeSlice';
 
 export function ProvidersUI({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    // Precarga seleccion de Tema
+    // Theme is not in localStorage slice format — load it separately
     try {
-      const themeSelectedStr = localStorage.getItem('themeSelected');
-      if (themeSelectedStr) {
-        const themeSelected = JSON.parse(themeSelectedStr);
-        store.dispatch(setThemeSlice(themeSelected));
-      } else {
-        store.dispatch(setThemeSlice('light'));
-      }
-    } catch (error) {
-      console.error('Error loading theme from localStorage:', error);
+      const themeStr = localStorage.getItem('themeSelected');
+      store.dispatch(setThemeSlice(themeStr ? JSON.parse(themeStr) : 'light'));
+    } catch {
       store.dispatch(setThemeSlice('light'));
     }
   }, []);

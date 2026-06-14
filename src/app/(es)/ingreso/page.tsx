@@ -1,9 +1,5 @@
-export default function Ingreso() {
-  return (
-    <>
-      Ingreso
-      <br />
-      <br />
-    </>
-  );
+import { redirect } from 'next/navigation';
+
+export default function IngresoPage() {
+  redirect('/solicitar-credito');
 }
