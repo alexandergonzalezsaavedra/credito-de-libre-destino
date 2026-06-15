@@ -10,6 +10,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  addToast,
 } from '@heroui/react';
 import {
   IconClipboardCheck,
@@ -118,6 +119,7 @@ export default function StepResumen() {
       await new Promise((r) => setTimeout(r, 1000));
       dispatch(confirmarSolicitud());
       dispatch(registrarEvento({ evento: 'SOLICITUD_CONFIRMADA', detalle: id ?? '' }));
+      addToast({ title: '¡Solicitud enviada!', description: `Tu solicitud ${id} fue registrada. Recibirás respuesta pronto.`, color: 'success' });
       // La sincronización a sesionesUsuario la maneja SolicitudWizard automáticamente
     } finally {
       setConfirmando(false);
@@ -126,9 +128,8 @@ export default function StepResumen() {
 
   function handleAbandonar() {
     dispatch(abandonarSolicitud());
-    dispatch(
-      registrarEvento({ evento: 'SOLICITUD_ABANDONADA', detalle: id ?? '' }),
-    );
+    dispatch(registrarEvento({ evento: 'SOLICITUD_ABANDONADA', detalle: id ?? '' }));
+    addToast({ title: 'Solicitud pausada', description: 'Tu borrador quedó guardado. Puedes retomarlo cuando quieras.', color: 'warning' });
   }
 
   const res = simulacion.resultado;

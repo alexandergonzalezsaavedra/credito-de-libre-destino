@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Button, Input, Card, CardBody } from '@heroui/react';
 import { IconUser, IconLock, IconLogin, IconAlertCircle, IconShieldCheck, IconEye, IconEyeOff } from '@tabler/icons-react';
+import { addToast } from '@heroui/react';
 import { useRouter } from 'next/navigation';
 import { ADMIN_CREDENTIALS, isAdminAuthenticated, loginAdmin } from '@/app/admin/_lib/credentials';
 
@@ -28,9 +29,11 @@ export default function AdminLoginPage() {
       contrasena === ADMIN_CREDENTIALS.contrasena
     ) {
       loginAdmin();
+      addToast({ title: 'Acceso concedido', description: 'Bienvenido al panel de administración.', color: 'success' });
       router.push('/admin/dashboard');
     } else {
       setError('Usuario o contraseña incorrectos');
+      addToast({ title: 'Credenciales incorrectas', description: 'Verifica el usuario y la contraseña.', color: 'danger' });
     }
     setCargando(false);
   }

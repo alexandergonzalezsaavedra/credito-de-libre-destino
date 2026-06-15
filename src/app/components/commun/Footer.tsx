@@ -1,6 +1,6 @@
 'use client';
 import { Link } from '@heroui/react';
-import { IconBrandLinkedin } from '@tabler/icons-react';
+import { IconBrandLinkedin, IconBrandGithub } from '@tabler/icons-react';
 import LogoBrand from './LogoBrand';
 
 const Footer = () => {
@@ -23,14 +23,22 @@ const Footer = () => {
         </div>
 
         {/* Redes sociales */}
-        <div className='flex items-center gap-3'>
+        <div className='flex items-center gap-4'>
           <Link
             href='https://www.linkedin.com/in/alexander-gonzalez-saavedra'
             isExternal
             className='flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-primary transition-colors'
           >
             <IconBrandLinkedin size={18} className='text-[#0A66C2]' />
-            <span className='hidden sm:inline'>alexander-gonzalez-saavedra</span>
+            <span className='hidden sm:inline'>LinkedIn</span>
+          </Link>
+          <Link
+            href='https://github.com/alexandergonzalezsaavedra/credito-de-libre-destino'
+            isExternal
+            className='flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-primary transition-colors'
+          >
+            <IconBrandGithub size={18} />
+            <span className='hidden sm:inline'>GitHub</span>
           </Link>
         </div>
 

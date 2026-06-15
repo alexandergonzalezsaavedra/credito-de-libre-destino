@@ -2,7 +2,6 @@ import { Chip } from '@heroui/react';
 import {
   IconUserCheck,
   IconBriefcase,
-  IconBuildingBank,
   IconReportMoney,
   IconCircleCheck,
 } from '@tabler/icons-react';
@@ -19,12 +18,6 @@ const requirements = [
     title: 'Empleado o pensionado',
     description:
       'Pertenecer al sector público, privado o ser pensionado con ingresos demostrables.',
-  },
-  {
-    icon: IconBuildingBank,
-    title: 'Cuenta activa',
-    description:
-      'Contar con una cuenta de ahorros o corriente activa en Banco Caja Social.',
   },
   {
     icon: IconReportMoney,
@@ -64,13 +57,10 @@ const RequirementsSection = () => {
               {requirements.map(({ icon: Icon, title, description }) => (
                 <li
                   key={title}
-                  className='flex items-start gap-4 bg-white/70 dark:bg-white/10 rounded-2xl p-4 shadow-sm'
+                  className='flex items-center gap-4 py-4 border-b border-gray-100 dark:border-white/10 last:border-0'
                 >
                   <div className='flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary shrink-0'>
-                    <Icon
-                      size={20}
-                      stroke={1.8}
-                    />
+                    <Icon size={20} stroke={1.8} />
                   </div>
                   <div className='flex-1'>
                     <p className='font-semibold text-gray-800 dark:text-gray-100 text-sm'>
@@ -82,7 +72,7 @@ const RequirementsSection = () => {
                   </div>
                   <IconCircleCheck
                     size={18}
-                    className='text-primary shrink-0 mt-0.5'
+                    className='text-primary shrink-0'
                     stroke={1.8}
                   />
                 </li>

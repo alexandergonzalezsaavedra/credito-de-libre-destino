@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Button, Input, Select, SelectItem, Card, CardBody } from '@heroui/react';
+import { Button, Input, Select, SelectItem, Card, CardBody, addToast } from '@heroui/react';
 import { IconCalculator, IconArrowRight, IconArrowLeft, IconCurrencyDollar } from '@tabler/icons-react';
 import { useAppDispatch, useAppSelector } from '@/app/store';
 import { guardarSimulacion, setPaso, type ResultadoSimulacion } from '@/app/store/solicitud/solicitudSlice';
@@ -59,6 +59,11 @@ export default function StepSimulacion() {
     setResultado(res);
     setCalculando(false);
     dispatch(registrarEvento({ evento: 'SIMULACION_CALCULADA', detalle: `Monto: ${monto}, Plazo: ${plazoMeses}` }));
+    addToast({
+      title: 'Simulación calculada',
+      description: `Cuota mensual estimada: ${formatCOP(res.cuotaMensual)} a ${plazoMeses} meses.`,
+      color: 'primary',
+    });
   }
 
   function handleContinuar() {

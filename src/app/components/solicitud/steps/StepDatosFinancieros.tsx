@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Button, Input, Select, SelectItem } from '@heroui/react';
+import { Button, Input, Select, SelectItem, addToast } from '@heroui/react';
 import {
   IconBriefcase,
   IconArrowRight,
@@ -63,6 +63,7 @@ export default function StepDatosFinancieros() {
     }
     dispatch(guardarDatosFinancieros(form));
     dispatch(registrarEvento({ evento: 'DATOS_FINANCIEROS_GUARDADOS' }));
+    addToast({ title: 'Datos financieros guardados', description: 'Tu información de ingresos fue registrada correctamente.', color: 'success' });
   }
 
   const esPensionado = form.tipoEmpleo === 'pensionado';

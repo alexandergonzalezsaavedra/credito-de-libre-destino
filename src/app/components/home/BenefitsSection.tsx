@@ -1,4 +1,3 @@
-import { Card, CardBody } from '@heroui/react';
 import {
   IconWallet,
   IconRocket,
@@ -47,46 +46,39 @@ const benefits = [
   },
 ];
 
-const BenefitsSection = () => {
-  return (
-    <section className='py-16 px-4 bg-white/40 dark:bg-white/5'>
-      <div className='max-w-5xl mx-auto'>
-        <div className='text-center mb-10'>
-          <h2 className='text-3xl font-bold text-gray-800 dark:text-gray-100'>
-            ¿Por qué elegir nuestro CLD?
-          </h2>
-          <p className='text-gray-500 dark:text-gray-400 mt-2'>
-            Diseñado para que accedas a tu dinero de la manera más simple y
-            segura.
-          </p>
-        </div>
+const BenefitsSection = () => (
+  <section className='py-20 px-4 bg-linear-to-b from-slate-50 to-white dark:from-gray-900 dark:to-gray-950'>
+    <div className='max-w-5xl mx-auto'>
 
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
-          {benefits.map(({ icon: Icon, title, description }) => (
-            <Card
-              key={title}
-              shadow='sm'
-              className='bg-white/80 dark:bg-white/10 border border-white dark:border-white/10 hover:shadow-md transition-shadow'
-            >
-              <CardBody className='flex flex-row gap-4 items-start p-5'>
-                <div className='flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary shrink-0'>
-                  <Icon size={20} stroke={1.8} />
-                </div>
-                <div>
-                  <h3 className='font-semibold text-gray-800 dark:text-gray-100 text-sm mb-1'>
-                    {title}
-                  </h3>
-                  <p className='text-xs text-gray-500 dark:text-gray-400 leading-relaxed'>
-                    {description}
-                  </p>
-                </div>
-              </CardBody>
-            </Card>
-          ))}
-        </div>
+      <div className='text-center mb-14'>
+        <h2 className='text-3xl font-bold text-gray-800 dark:text-gray-100'>
+          ¿Por qué elegir nuestro CLD?
+        </h2>
+        <p className='text-gray-500 dark:text-gray-400 mt-2'>
+          Diseñado para que accedas a tu dinero de la manera más simple y segura.
+        </p>
       </div>
-    </section>
-  );
-};
+
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-10'>
+        {benefits.map(({ icon: Icon, title, description }) => (
+          <div key={title} className='flex flex-col gap-4'>
+            <div className='w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0'>
+              <Icon size={20} stroke={1.8} />
+            </div>
+            <div>
+              <h3 className='font-semibold text-gray-800 dark:text-gray-100 text-base mb-1.5'>
+                {title}
+              </h3>
+              <p className='text-sm text-gray-500 dark:text-gray-400 leading-relaxed'>
+                {description}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+    </div>
+  </section>
+);
 
 export default BenefitsSection;

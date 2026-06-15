@@ -43,7 +43,7 @@ function formatFecha(iso: string) {
 // ─── Skeleton ────────────────────────────────────────────────────────────────
 function Skeleton() {
   return (
-    <main className='max-w-3xl mx-auto px-4 py-12 flex flex-col gap-6'>
+    <main className='max-w-3xl mx-auto px-4 py-12 flex flex-col gap-6 min-h-[calc(100vh-160px)] justify-center'>
       <div className='flex items-center gap-3'>
         <div className='w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/10 animate-pulse' />
         <div className='flex flex-col gap-1.5'>
@@ -351,7 +351,7 @@ export default function HistorialPage() {
   if (!loggedIn) {
     return (
       <>
-        <main className='max-w-3xl mx-auto px-4 py-20 flex flex-col items-center text-center gap-5 fade-in'>
+        <main className='max-w-3xl mx-auto px-4 py-20 flex flex-col items-center justify-center text-center gap-5 fade-in min-h-[calc(100vh-160px)]'>
           <div className='w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center'>
             <IconClipboardList size={32} stroke={1.5} />
           </div>
@@ -384,7 +384,7 @@ export default function HistorialPage() {
   // ── Sin solicitudes ──
   if (solicitudes.length === 0) {
     return (
-      <main className='max-w-3xl mx-auto px-4 py-20 flex flex-col items-center text-center gap-5 fade-in'>
+      <main className='max-w-3xl mx-auto px-4 py-20 flex flex-col items-center justify-center text-center gap-5 fade-in min-h-[calc(100vh-160px)]'>
         <div className='w-16 h-16 rounded-2xl bg-gray-100 dark:bg-white/10 text-gray-400 flex items-center justify-center'>
           <IconInbox size={32} stroke={1.5} />
         </div>
@@ -405,7 +405,7 @@ export default function HistorialPage() {
   // ── Con solicitudes ──
   return (
     <>
-      <main className='max-w-3xl mx-auto px-4 py-12 flex flex-col gap-6 fade-in'>
+      <main className='max-w-3xl mx-auto px-4 py-12 flex flex-col gap-6 fade-in min-h-[calc(100vh-160px)] justify-center'>
         {/* Título */}
         <div className='flex items-center gap-3'>
           <div className='w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0'>

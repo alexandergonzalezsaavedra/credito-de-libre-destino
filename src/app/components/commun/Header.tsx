@@ -13,6 +13,7 @@ import { Moon, Sun } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { useTheme } from 'next-themes';
 import { setThemeSlice } from '@/app/store/commun/selectThemeSlice';
+import { addToast } from '@heroui/react';
 import { cerrarSesion, guardarPerfil, type UsuarioPerfil } from '@/app/store/usuario/usuarioSlice';
 import { registrarSesionUsuario } from '@/app/store/sesiones/sesionesSlice';
 import { limpiarSolicitud } from '@/app/store/solicitud/solicitudSlice';
@@ -69,6 +70,7 @@ const Header = () => {
   const handleCerrarSesion = () => {
     dispatch(cerrarSesion());
     setIsMenuOpen(false);
+    addToast({ title: 'Sesión cerrada', description: 'Has cerrado sesión correctamente.', color: 'default' });
     router.push('/');
   };
 

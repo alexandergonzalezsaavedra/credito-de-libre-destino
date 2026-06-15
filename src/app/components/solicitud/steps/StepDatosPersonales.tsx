@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Button, Input } from '@heroui/react';
+import { Button, Input, addToast } from '@heroui/react';
 import { IconUser, IconArrowRight, IconArrowLeft } from '@tabler/icons-react';
 import { useAppDispatch, useAppSelector } from '@/app/store';
 import { guardarDatosPersonales, setPaso, type DatosPersonales } from '@/app/store/solicitud/solicitudSlice';
@@ -51,6 +51,7 @@ export default function StepDatosPersonales() {
 
     dispatch(guardarDatosPersonales(form));
     dispatch(registrarEvento({ evento: 'DATOS_PERSONALES_GUARDADOS' }));
+    addToast({ title: 'Datos personales guardados', description: 'Tu información personal fue registrada correctamente.', color: 'success' });
 
     // Si el usuario aún no tiene sesión activa, registrarlo automáticamente
     if (!usuario.numeroDocumento && identidad.numeroDocumento) {
@@ -71,6 +72,7 @@ export default function StepDatosPersonales() {
         evento: 'USUARIO_REGISTRADO_AUTOMATICO',
         detalle: `${identidad.tipoDocumento} ${identidad.numeroDocumento}`,
       }));
+      addToast({ title: 'Perfil creado', description: `Bienvenido, ${form.nombres.trim()}. Tu perfil fue registrado automáticamente.`, color: 'primary' });
     }
   }
 

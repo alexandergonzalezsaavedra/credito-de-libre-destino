@@ -1,6 +1,6 @@
 # Solicitud Digital de Crédito de Libre Destino — Banco Caja Social
 
-Prueba técnica desarrollada con **Next.js 15**, **Redux Toolkit**, **HeroUI** y **Tailwind CSS v4**.  
+Prueba técnica desarrollada con **Next.js 15**, **Redux Toolkit**, **HeroUI** y **Tailwind CSS v4**.
 Permite a los usuarios solicitar un crédito de libre destino de forma 100% digital, con simulación de oferta, registro automático y trazabilidad de eventos.
 
 ---
@@ -44,13 +44,13 @@ npm run start
 
 ## Rutas principales
 
-| Ruta | Descripción |
-|---|---|
-| `/` | Landing page — presentación del producto |
-| `/solicitar-credito` | Formulario wizard de solicitud (6 pasos) |
-| `/perfil` | Registro y gestión del perfil del usuario |
-| `/historial` | Historial de solicitudes del usuario |
-| `/admin` | Panel de administración |
+| Ruta                 | Descripción                               |
+| -------------------- | ----------------------------------------- |
+| `/`                  | Landing page — presentación del producto  |
+| `/solicitar-credito` | Formulario wizard de solicitud (6 pasos)  |
+| `/perfil`            | Registro y gestión del perfil del usuario |
+| `/historial`         | Historial de solicitudes del usuario      |
+| `/admin`             | Panel de administración                   |
 
 ---
 
@@ -58,9 +58,9 @@ npm run start
 
 Accede en **[http://localhost:3000/admin](http://localhost:3000/admin)**
 
-| Campo | Valor |
-|---|---|
-| Usuario | `admin` |
+| Campo      | Valor       |
+| ---------- | ----------- |
+| Usuario    | `admin`     |
 | Contraseña | `admin2026` |
 
 El panel permite visualizar todas las solicitudes realizadas, filtrar por número de cédula y paginar los resultados (10 registros por página).
@@ -71,16 +71,16 @@ El panel permite visualizar todas las solicitudes realizadas, filtrar por númer
 
 Los endpoints están disponibles bajo `/api/applications`:
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| `POST` | `/api/applications` | Crear solicitud |
-| `GET` | `/api/applications` | Listar solicitudes con filtros |
-| `GET` | `/api/applications/{id}` | Consultar detalle |
-| `PATCH` | `/api/applications/{id}` | Actualizar datos |
-| `POST` | `/api/applications/{id}/simulate-offer` | Obtener simulación preliminar |
-| `POST` | `/api/applications/{id}/finalize` | Finalizar solicitud |
-| `POST` | `/api/applications/{id}/abandon` | Abandonar solicitud |
-| `GET` | `/api/applications/{id}/events` | Consultar trazabilidad de eventos |
+| Método  | Ruta                                    | Descripción                       |
+| ------- | --------------------------------------- | --------------------------------- |
+| `POST`  | `/api/applications`                     | Crear solicitud                   |
+| `GET`   | `/api/applications`                     | Listar solicitudes con filtros    |
+| `GET`   | `/api/applications/{id}`                | Consultar detalle                 |
+| `PATCH` | `/api/applications/{id}`                | Actualizar datos                  |
+| `POST`  | `/api/applications/{id}/simulate-offer` | Obtener simulación preliminar     |
+| `POST`  | `/api/applications/{id}/finalize`       | Finalizar solicitud               |
+| `POST`  | `/api/applications/{id}/abandon`        | Abandonar solicitud               |
+| `GET`   | `/api/applications/{id}/events`         | Consultar trazabilidad de eventos |
 
 ---
 
@@ -98,4 +98,5 @@ Los endpoints están disponibles bajo `/api/applications`:
 ## Autor
 
 **Alexander González**  
-[linkedin.com/in/alexander-gonzalez-saavedra](https://www.linkedin.com/in/alexander-gonzalez-saavedra)
+[linkedin.com/in/alexander-gonzalez-saavedra](https://www.linkedin.com/in/alexander-gonzalez-saavedra)  
+[github.com/alexandergonzalezsaavedra/credito-de-libre-destino](https://github.com/alexandergonzalezsaavedra/credito-de-libre-destino)

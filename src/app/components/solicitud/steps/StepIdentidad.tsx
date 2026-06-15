@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Button, Input, Select, SelectItem } from '@heroui/react';
+import { Button, Input, Select, SelectItem, addToast } from '@heroui/react';
 import { IconIdBadge2, IconArrowRight, IconLogin } from '@tabler/icons-react';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { useAppDispatch, useAppSelector } from '@/app/store';
@@ -82,6 +82,7 @@ export default function StepIdentidad() {
         return;
       }
 
+      addToast({ title: 'Identidad validada', description: `Documento ${tipoDocumento} ${numeroDocumento} verificado.`, color: 'success' });
       const utms = capturarUtms();
       dispatch(iniciarSolicitud({
         identidad: { tipoDocumento: tipoDocumento as TipoDocumento, numeroDocumento, validado: true },

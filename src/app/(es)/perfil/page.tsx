@@ -160,7 +160,7 @@ export default function PerfilPage() {
   const solicitudesUsuario = sesionActual?.solicitudes ?? [];
 
   if (!mounted) return (
-    <main className='max-w-xl mx-auto px-4 py-12 flex flex-col gap-6'>
+    <main className='max-w-xl mx-auto px-4 py-12 flex flex-col gap-6 min-h-[calc(100vh-160px)] justify-center'>
       <div className='flex items-center gap-3'>
         <div className='w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/10 animate-pulse shrink-0' />
         <div className='flex flex-col gap-2 flex-1'>
@@ -173,7 +173,7 @@ export default function PerfilPage() {
   );
 
   return (
-    <main className='max-w-xl mx-auto px-4 py-12 flex flex-col gap-6'>
+    <main className='max-w-xl mx-auto px-4 py-12 flex flex-col gap-6 min-h-[calc(100vh-160px)] justify-center'>
       {/* Header — solo visible en modo edición */}
       {editando && (
         <div className='flex items-center gap-3'>

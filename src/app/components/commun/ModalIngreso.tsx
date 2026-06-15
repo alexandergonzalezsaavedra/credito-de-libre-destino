@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import {
   Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  Button, Input,
+  Button, Input, addToast,
 } from '@heroui/react';
 import { IconLogin, IconIdBadge2, IconCalendar, IconAlertCircle } from '@tabler/icons-react';
 import { useAppSelector } from '@/app/store';
@@ -58,6 +58,11 @@ export default function ModalIngreso({ isOpen, onClose, onSuccess, mensaje, docI
       setError('No encontramos un perfil con esos datos. Verifica e intenta de nuevo.');
       return;
     }
+    addToast({
+      title: `Bienvenido, ${sesion.usuario.nombres.trim()}`,
+      description: 'Sesión iniciada correctamente.',
+      color: 'success',
+    });
     reset();
     onSuccess(sesion.usuario);
   }
