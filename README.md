@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Solicitud Digital de Crédito de Libre Destino — Banco Caja Social
 
-## Getting Started
+Prueba técnica desarrollada con **Next.js 15**, **Redux Toolkit**, **HeroUI** y **Tailwind CSS v4**.  
+Permite a los usuarios solicitar un crédito de libre destino de forma 100% digital, con simulación de oferta, registro automático y trazabilidad de eventos.
 
-First, run the development server:
+---
+
+## Requisitos previos
+
+- Node.js 18 o superior
+- npm 9 o superior
+
+---
+
+## Instalación y ejecución
+
+### 1. Instalar dependencias
+
+```bash
+npm i
+```
+
+### 2. Vista en desarrollo
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Compilar para producción
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Vista en producción
 
-## Learn More
+```bash
+npm run start
+```
 
-To learn more about Next.js, take a look at the following resources:
+> La aplicación siempre se visualiza en **[http://localhost:3000](http://localhost:3000)**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Rutas principales
 
-## Deploy on Vercel
+| Ruta | Descripción |
+|---|---|
+| `/` | Landing page — presentación del producto |
+| `/solicitar-credito` | Formulario wizard de solicitud (6 pasos) |
+| `/perfil` | Registro y gestión del perfil del usuario |
+| `/historial` | Historial de solicitudes del usuario |
+| `/admin` | Panel de administración |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Panel de administración
+
+Accede en **[http://localhost:3000/admin](http://localhost:3000/admin)**
+
+| Campo | Valor |
+|---|---|
+| Usuario | `admin` |
+| Contraseña | `admin2026` |
+
+El panel permite visualizar todas las solicitudes realizadas, filtrar por número de cédula y paginar los resultados (10 registros por página).
+
+---
+
+## API REST
+
+Los endpoints están disponibles bajo `/api/applications`:
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `POST` | `/api/applications` | Crear solicitud |
+| `GET` | `/api/applications` | Listar solicitudes con filtros |
+| `GET` | `/api/applications/{id}` | Consultar detalle |
+| `PATCH` | `/api/applications/{id}` | Actualizar datos |
+| `POST` | `/api/applications/{id}/simulate-offer` | Obtener simulación preliminar |
+| `POST` | `/api/applications/{id}/finalize` | Finalizar solicitud |
+| `POST` | `/api/applications/{id}/abandon` | Abandonar solicitud |
+| `GET` | `/api/applications/{id}/events` | Consultar trazabilidad de eventos |
+
+---
+
+## Stack tecnológico
+
+- **Next.js 15** — App Router, Server Components, API Routes
+- **Redux Toolkit v2** — gestión de estado global con persistencia en `localStorage`
+- **HeroUI v2** — componentes de interfaz
+- **Tailwind CSS v4** — estilos utilitarios
+- **TypeScript** — tipado estático
+- **React Google reCAPTCHA v3** — validación de identidad
+
+---
+
+## Autor
+
+**Alexander González**  
+[linkedin.com/in/alexander-gonzalez-saavedra](https://www.linkedin.com/in/alexander-gonzalez-saavedra)
