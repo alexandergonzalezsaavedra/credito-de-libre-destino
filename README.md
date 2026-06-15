@@ -3,6 +3,8 @@
 Prueba técnica desarrollada con **Next.js 15**, **Redux Toolkit**, **HeroUI** y **Tailwind CSS v4**.
 Permite a los usuarios solicitar un crédito de libre destino de forma 100% digital, con simulación de oferta, registro automático y trazabilidad de eventos.
 
+**Demo en producción:** [https://credito-de-libre-destino.netlify.app](https://credito-de-libre-destino.netlify.app)
+
 ---
 
 ## Requisitos previos
