@@ -29,7 +29,6 @@ import {
   setPaso,
 } from '@/app/store/solicitud/solicitudSlice';
 import { registrarEvento } from '@/app/store/audit/auditSlice';
-import { agregarSolicitud } from '@/app/store/historial/historialSlice';
 
 function formatCOP(n: number) {
   return new Intl.NumberFormat('es-CO', {
@@ -119,18 +118,7 @@ export default function StepResumen() {
       await new Promise((r) => setTimeout(r, 1000));
       dispatch(confirmarSolicitud());
       dispatch(registrarEvento({ evento: 'SOLICITUD_CONFIRMADA', detalle: id ?? '' }));
-      if (id && simulacion.resultado) {
-        dispatch(agregarSolicitud({
-          id,
-          fecha: new Date().toISOString(),
-          numeroDocumento: identidad.numeroDocumento,
-          monto: simulacion.monto,
-          plazoMeses: simulacion.plazoMeses,
-          cuotaMensual: simulacion.resultado.cuotaMensual,
-          totalPagar: simulacion.resultado.totalPagar,
-          status: 'completada',
-        }));
-      }
+      // La sincronización a sesionesUsuario la maneja SolicitudWizard automáticamente
     } finally {
       setConfirmando(false);
     }

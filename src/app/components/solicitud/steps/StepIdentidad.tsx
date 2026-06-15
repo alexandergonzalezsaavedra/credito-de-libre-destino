@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button, Input, Select, SelectItem } from '@heroui/react';
 import { IconIdBadge2, IconArrowRight, IconLogin } from '@tabler/icons-react';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
-import { useAppDispatch } from '@/app/store';
+import { useAppDispatch, useAppSelector } from '@/app/store';
 import {
   iniciarSolicitud,
   guardarDatosPersonales,
@@ -11,6 +11,7 @@ import {
 } from '@/app/store/solicitud/solicitudSlice';
 import { registrarEvento } from '@/app/store/audit/auditSlice';
 import { guardarPerfil, type UsuarioPerfil } from '@/app/store/usuario/usuarioSlice';
+import { registrarSesionUsuario } from '@/app/store/sesiones/sesionesSlice';
 import { capturarUtms, utmsToString } from '@/lib/utms';
 import ModalIngreso from '@/app/components/commun/ModalIngreso';
 
@@ -21,22 +22,24 @@ const TIPOS_DOCUMENTO = [
   { key: 'TI', label: 'Tarjeta de Identidad' },
 ];
 
-const LONGITUDES: Record<string, { min: number; max: number; pattern: string }> = {
-  CC: { min: 6, max: 10, pattern: '[0-9]*' },
-  CE: { min: 6, max: 12, pattern: '[0-9A-Za-z]*' },
-  PA: { min: 5, max: 12, pattern: '[0-9A-Za-z]*' },
-  TI: { min: 10, max: 11, pattern: '[0-9]*' },
+const LONGITUDES: Record<string, { min: number; max: number }> = {
+  CC: { min: 6, max: 10 },
+  CE: { min: 6, max: 12 },
+  PA: { min: 5, max: 12 },
+  TI: { min: 10, max: 11 },
 };
 
 export default function StepIdentidad() {
   const dispatch = useAppDispatch();
   const { executeRecaptcha } = useGoogleReCaptcha();
+  const sesiones = useAppSelector(s => s.sesiones.sesiones);
 
   const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento | ''>('');
   const [numeroDocumento, setNumeroDocumento] = useState('');
   const [errores, setErrores] = useState<{ tipo?: string; numero?: string; recaptcha?: string }>({});
   const [cargando, setCargando] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [mensajeModal, setMensajeModal] = useState<string | undefined>();
 
   function validar() {
     const e: typeof errores = {};
@@ -56,6 +59,16 @@ export default function StepIdentidad() {
     const errs = validar();
     if (Object.keys(errs).length) { setErrores(errs); return; }
 
+    // Si el documento ya existe en sesiones, abrir modal de ingreso
+    const sesionExistente = sesiones.find(
+      s => s.usuario.numeroDocumento === numeroDocumento.trim(),
+    );
+    if (sesionExistente) {
+      setMensajeModal('Ya tienes un perfil con este número de documento. Ingresa tu fecha de nacimiento para acceder a tus solicitudes.');
+      setModalOpen(true);
+      return;
+    }
+
     if (!executeRecaptcha) {
       setErrores({ recaptcha: 'reCAPTCHA no disponible. Recarga la página.' });
       return;
@@ -70,12 +83,10 @@ export default function StepIdentidad() {
       }
 
       const utms = capturarUtms();
-
       dispatch(iniciarSolicitud({
         identidad: { tipoDocumento: tipoDocumento as TipoDocumento, numeroDocumento, validado: true },
         utms,
       }));
-
       const utmDetalle = utmsToString(utms);
       dispatch(registrarEvento({
         evento: 'IDENTIDAD_VALIDADA',
@@ -88,6 +99,7 @@ export default function StepIdentidad() {
 
   function handleLoginSuccess(perfil: UsuarioPerfil) {
     dispatch(guardarPerfil(perfil));
+    dispatch(registrarSesionUsuario(perfil));
     dispatch(iniciarSolicitud({
       identidad: {
         tipoDocumento: perfil.tipoDocumento as TipoDocumento,
@@ -110,6 +122,7 @@ export default function StepIdentidad() {
       detalle: `${perfil.tipoDocumento} ${perfil.numeroDocumento}`,
     }));
     setModalOpen(false);
+    setMensajeModal(undefined);
   }
 
   return (
@@ -184,7 +197,7 @@ export default function StepIdentidad() {
           <button
             type='button'
             className='text-xs text-primary font-semibold hover:underline flex items-center gap-1'
-            onClick={() => setModalOpen(true)}
+            onClick={() => { setMensajeModal(undefined); setModalOpen(true); }}
           >
             <IconLogin size={13} />
             Ingresar aquí
@@ -194,8 +207,10 @@ export default function StepIdentidad() {
 
       <ModalIngreso
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => { setModalOpen(false); setMensajeModal(undefined); }}
         onSuccess={handleLoginSuccess}
+        mensaje={mensajeModal}
+        docInicial={mensajeModal ? numeroDocumento : undefined}
       />
     </>
   );

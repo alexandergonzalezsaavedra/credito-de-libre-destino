@@ -13,9 +13,9 @@ export interface UsuarioPerfil {
   ciudad: string;
 }
 
-interface UsuarioState extends UsuarioPerfil {
-  registrados: UsuarioPerfil[];
-}
+// UsuarioState = sesión activa en pantalla; la lista de todos los registrados
+// vive ahora en sesionesSlice (sesionesUsuario en localStorage).
+export type UsuarioState = UsuarioPerfil;
 
 const STORAGE_KEY = 'usuario-perfil';
 
@@ -29,7 +29,6 @@ const initialState: UsuarioState = {
   fechaNacimiento: '',
   direccion: '',
   ciudad: '',
-  registrados: [],
 };
 
 function persistir(state: UsuarioState) {
@@ -41,34 +40,24 @@ const usuarioSlice = createSlice({
   name: 'usuario',
   initialState,
   reducers: {
+    // Guarda el perfil activo en la sesión (persiste en localStorage)
     guardarPerfil: (state, action: PayloadAction<UsuarioPerfil>) => {
-      const idx = state.registrados.findIndex(
-        r => r.numeroDocumento === action.payload.numeroDocumento,
-      );
-      if (idx >= 0) {
-        state.registrados[idx] = { ...action.payload };
-      } else {
-        state.registrados.push({ ...action.payload });
-      }
       Object.assign(state, action.payload);
       persistir(state);
     },
+    // Carga datos en pantalla sin persistir (para autocompletar formularios)
     cargarPerfil: (state, action: PayloadAction<Partial<UsuarioState>>) => {
       Object.assign(state, action.payload);
     },
-    cerrarSesion: (state) => {
-      // Clear active profile but keep the registrados list intact
-      const registrados = current(state).registrados;
-      Object.assign(state, { ...initialState, registrados });
-      persistir(state);
+    // Cierra la sesión activa; la lista en sesionesSlice permanece intacta
+    cerrarSesion: () => {
+      if (typeof window !== 'undefined') localStorage.removeItem(STORAGE_KEY);
+      return initialState;
     },
-    darseDeBaja: (state) => {
-      // Remove user from registrados and clear active profile
-      const registrados = current(state).registrados.filter(
-        r => r.numeroDocumento !== state.numeroDocumento,
-      );
-      Object.assign(state, { ...initialState, registrados });
-      persistir(state);
+    // Elimina la sesión activa (sesionesSlice borra al usuario de la lista)
+    darseDeBaja: () => {
+      if (typeof window !== 'undefined') localStorage.removeItem(STORAGE_KEY);
+      return initialState;
     },
     limpiarPerfil: () => {
       if (typeof window !== 'undefined') localStorage.removeItem(STORAGE_KEY);

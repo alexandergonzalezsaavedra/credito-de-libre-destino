@@ -55,6 +55,7 @@ export interface Utms {
 
 export interface SolicitudState {
   id: string | null;
+  creadoEn: string | null;   // ISO — fecha de inicio de la solicitud
   pasoActual: number;
   status: 'idle' | 'en_proceso' | 'completada' | 'abandonada';
   identidad: Identidad;
@@ -67,6 +68,7 @@ export interface SolicitudState {
 
 const initialState: SolicitudState = {
   id: null,
+  creadoEn: null,
   pasoActual: 0,
   status: 'idle',
   identidad: { tipoDocumento: '', numeroDocumento: '', validado: false },
@@ -98,6 +100,7 @@ const solicitudSlice = createSlice({
   reducers: {
     iniciarSolicitud: (state, action: PayloadAction<{ identidad: Identidad; utms: Utms }>) => {
       state.id = `SOL-${Date.now()}`;
+      state.creadoEn = new Date().toISOString();
       state.pasoActual = 1;
       state.status = 'en_proceso';
       state.identidad = { ...action.payload.identidad, validado: true };
@@ -137,6 +140,28 @@ const solicitudSlice = createSlice({
       persistir(state);
     },
     cargarBorrador: (_, action: PayloadAction<SolicitudState>) => action.payload,
+    // Reanuda una solicitud guardada en sesionesUsuario (viene del historial)
+    reanudarSolicitud: (state, action: PayloadAction<{
+      id: string;
+      creadoEn: string;
+      paso: number;
+      tipoDocumento: string;
+      numeroDocumento: string;
+      datosPersonales?: DatosPersonales;
+      datosFinancieros?: DatosFinancieros;
+      simulacion?: Simulacion;
+    }>) => {
+      const p = action.payload;
+      state.id = p.id;
+      state.creadoEn = p.creadoEn;
+      state.pasoActual = p.paso;
+      state.status = 'en_proceso';
+      state.identidad = { tipoDocumento: p.tipoDocumento as TipoDocumento, numeroDocumento: p.numeroDocumento, validado: true };
+      if (p.datosPersonales) state.datosPersonales = p.datosPersonales;
+      if (p.datosFinancieros) state.datosFinancieros = p.datosFinancieros;
+      if (p.simulacion) state.simulacion = p.simulacion;
+      persistir(state);
+    },
     limpiarSolicitud: () => {
       if (typeof window !== 'undefined') localStorage.removeItem(STORAGE_KEY);
       return initialState;
@@ -149,7 +174,7 @@ export const {
   guardarDatosPersonales, guardarDatosFinancieros,
   guardarSimulacion, guardarAutorizaciones,
   confirmarSolicitud, abandonarSolicitud,
-  cargarBorrador, limpiarSolicitud,
+  cargarBorrador, reanudarSolicitud, limpiarSolicitud,
 } = solicitudSlice.actions;
 
 export default solicitudSlice.reducer;

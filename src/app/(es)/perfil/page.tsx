@@ -13,9 +13,15 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/app/store';
 import {
-  guardarPerfil, cargarPerfil, cerrarSesion, darseDeBaja,
+  guardarPerfil, cerrarSesion, darseDeBaja,
   type UsuarioPerfil,
 } from '@/app/store/usuario/usuarioSlice';
+import {
+  registrarSesionUsuario,
+  eliminarSesionUsuario,
+} from '@/app/store/sesiones/sesionesSlice';
+import { limpiarSolicitud } from '@/app/store/solicitud/solicitudSlice';
+import { limpiarAudit } from '@/app/store/audit/auditSlice';
 import type { TipoDocumento } from '@/app/store/solicitud/solicitudSlice';
 import ModalIngreso from '@/app/components/commun/ModalIngreso';
 
@@ -26,6 +32,11 @@ const TIPOS_DOCUMENTO = [
   { key: 'TI', label: 'Tarjeta de Identidad' },
 ];
 
+const PASO_LABELS = [
+  'Identidad', 'Datos personales', 'Datos financieros',
+  'Simulación', 'Autorizaciones', 'Resumen',
+];
+
 function formatCOP(n: number) {
   return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
 }
@@ -34,19 +45,19 @@ export default function PerfilPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const perfilGuardado = useAppSelector(s => s.usuario);
-  const registrados = useAppSelector(s => s.usuario.registrados);
-  const historial = useAppSelector(s => s.historial.solicitudes);
+  const sesiones = useAppSelector(s => s.sesiones.sesiones);
 
   const yaRegistrado = !!perfilGuardado.numeroDocumento;
   const [editando, setEditando] = useState(!yaRegistrado);
   const [modalIngresoOpen, setModalIngresoOpen] = useState(false);
+  const [mensajeIngreso, setMensajeIngreso] = useState<string | undefined>();
+  const [docIngresoInicial, setDocIngresoInicial] = useState<string | undefined>();
   const { isOpen: isBajaOpen, onOpen: onBajaOpen, onOpenChange: onBajaChange } = useDisclosure();
 
   const [mounted, setMounted] = useState(false);
   const [form, setForm] = useState<UsuarioPerfil>({ ...perfilGuardado });
   const [errores, setErrores] = useState<Partial<Record<keyof UsuarioPerfil, string>>>({});
 
-  // After hydration: sync state with what the store already has (from preloadedState)
   useEffect(() => {
     setMounted(true);
     if (perfilGuardado.numeroDocumento) {
@@ -63,19 +74,11 @@ export default function PerfilPage() {
     setErrores(e => ({ ...e, [campo]: undefined }));
   }
 
-  function validar() {
+  /** Valida solo campos requeridos y formato — sin chequear duplicados */
+  function validarCampos() {
     const e: Partial<Record<keyof UsuarioPerfil, string>> = {};
     if (!form.tipoDocumento) e.tipoDocumento = 'Selecciona el tipo de documento';
-    if (!form.numeroDocumento.trim()) {
-      e.numeroDocumento = 'Campo requerido';
-    } else {
-      // Excluir el propio doc (edición del mismo usuario)
-      const docNorm = form.numeroDocumento.trim().toUpperCase();
-      const selfDoc = perfilGuardado.numeroDocumento.trim().toUpperCase();
-      const otros = registrados.filter(r => r.numeroDocumento.trim().toUpperCase() !== selfDoc);
-      if (otros.some(r => r.numeroDocumento.trim().toUpperCase() === docNorm))
-        e.numeroDocumento = 'Este número de documento ya está registrado';
-    }
+    if (!form.numeroDocumento.trim()) e.numeroDocumento = 'Campo requerido';
     if (!form.nombres.trim()) e.nombres = 'Campo requerido';
     if (!form.apellidos.trim()) e.apellidos = 'Campo requerido';
     if (!form.fechaNacimiento) e.fechaNacimiento = 'Campo requerido';
@@ -83,13 +86,6 @@ export default function PerfilPage() {
       e.email = 'Campo requerido';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       e.email = 'Correo inválido';
-    } else {
-      // Comparar ambos lados en minúsculas para evitar duplicados por capitalización
-      const emailNorm = form.email.trim().toLowerCase();
-      const selfDoc = perfilGuardado.numeroDocumento.trim().toUpperCase();
-      const otros = registrados.filter(r => r.numeroDocumento.trim().toUpperCase() !== selfDoc);
-      if (otros.some(r => r.email.trim().toLowerCase() === emailNorm))
-        e.email = 'Este correo ya está registrado';
     }
     if (!form.telefono.trim()) e.telefono = 'Campo requerido';
     else if (!/^[0-9]{10}$/.test(form.telefono)) e.telefono = 'Debe tener 10 dígitos';
@@ -98,10 +94,43 @@ export default function PerfilPage() {
     return e;
   }
 
+  /** Abre el modal de ingreso con un mensaje informativo cuando hay duplicado */
+  function abrirModalDuplicado(mensaje: string, doc: string) {
+    setMensajeIngreso(mensaje);
+    setDocIngresoInicial(doc);
+    setModalIngresoOpen(true);
+  }
+
   function handleGuardar() {
-    const errs = validar();
+    const errs = validarCampos();
     if (Object.keys(errs).length) { setErrores(errs); return; }
+
+    const selfDoc = perfilGuardado.numeroDocumento.trim().toUpperCase();
+    const docNorm = form.numeroDocumento.trim().toUpperCase();
+    const emailNorm = form.email.trim().toLowerCase();
+    // Excluye al propio usuario en caso de edición
+    const otros = sesiones.filter(s => s.usuario.numeroDocumento.trim().toUpperCase() !== selfDoc);
+
+    const docExiste = otros.some(s => s.usuario.numeroDocumento.trim().toUpperCase() === docNorm);
+    const emailExiste = otros.some(s => s.usuario.email.trim().toLowerCase() === emailNorm);
+
+    if (docExiste) {
+      abrirModalDuplicado(
+        'Este número de documento ya tiene un perfil. Ingresa tu fecha de nacimiento para continuar.',
+        form.numeroDocumento,
+      );
+      return;
+    }
+    if (emailExiste) {
+      abrirModalDuplicado(
+        'Este correo ya está asociado a otro perfil. Ingresa tu documento y fecha de nacimiento para acceder.',
+        '',
+      );
+      return;
+    }
+
     dispatch(guardarPerfil(form));
+    dispatch(registrarSesionUsuario(form));
     setEditando(false);
   }
 
@@ -111,21 +140,24 @@ export default function PerfilPage() {
   }
 
   function handleDarseDeBaja() {
+    dispatch(eliminarSesionUsuario(perfilGuardado.numeroDocumento));
     dispatch(darseDeBaja());
     router.push('/');
   }
 
   function handleLoginSuccess(perfil: UsuarioPerfil) {
-    // guardarPerfil en lugar de cargarPerfil: persiste la sesión en localStorage
     dispatch(guardarPerfil(perfil));
+    dispatch(registrarSesionUsuario(perfil));
     setForm({ ...perfil });
     setModalIngresoOpen(false);
     setEditando(false);
   }
 
-  const solicitudesUsuario = historial.filter(
-    s => s.numeroDocumento === perfilGuardado.numeroDocumento,
+  // Solicitudes del usuario desde sesionesUsuario
+  const sesionActual = sesiones.find(
+    s => s.usuario.numeroDocumento === perfilGuardado.numeroDocumento,
   );
+  const solicitudesUsuario = sesionActual?.solicitudes ?? [];
 
   if (!mounted) return (
     <main className='max-w-xl mx-auto px-4 py-12 flex flex-col gap-6'>
@@ -244,7 +276,7 @@ export default function PerfilPage() {
               <Button color='primary' radius='full' className='flex-1 font-semibold'
                 onPress={handleGuardar}
                 startContent={<IconUserCheck size={16} />}>
-                {yaRegistrado ? 'Guardar cambios' : 'Registrarme y solicitar'}
+                {yaRegistrado ? 'Guardar cambios' : 'Registrarme'}
               </Button>
             </div>
 
@@ -254,7 +286,11 @@ export default function PerfilPage() {
                 <button
                   type='button'
                   className='text-xs text-primary font-semibold hover:underline flex items-center gap-1'
-                  onClick={() => setModalIngresoOpen(true)}
+                  onClick={() => {
+                    setMensajeIngreso(undefined);
+                    setDocIngresoInicial(undefined);
+                    setModalIngresoOpen(true);
+                  }}
                 >
                   <IconLogin size={13} />
                   Ingresar aquí
@@ -267,7 +303,6 @@ export default function PerfilPage() {
         <div className='flex flex-col gap-3'>
           {/* Hero card con avatar + datos */}
           <Card shadow='none' className='bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 overflow-hidden'>
-            {/* Strip superior con avatar e iniciales */}
             <div className='bg-primary px-5 py-5 flex items-center gap-4'>
               <div className='w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center shrink-0'>
                 <span className='text-xl font-extrabold text-white select-none'>
@@ -293,7 +328,6 @@ export default function PerfilPage() {
               </button>
             </div>
 
-            {/* Filas de detalle */}
             <CardBody className='p-0'>
               <div className='divide-y divide-gray-50 dark:divide-white/5'>
                 {[
@@ -318,11 +352,15 @@ export default function PerfilPage() {
             </CardBody>
           </Card>
 
-          {/* CTA principal */}
+          {/* CTA principal — resetea el wizard para que el auto-avance dispare limpio */}
           <Button
-            as={Link} href='/registro' color='primary' radius='full'
-            size='lg' className='w-full font-semibold'
+            color='primary' radius='full' size='lg' className='w-full font-semibold'
             endContent={<IconArrowRight size={18} />}
+            onPress={() => {
+              dispatch(limpiarSolicitud());
+              dispatch(limpiarAudit());
+              router.push('/solicitar-credito');
+            }}
           >
             Nueva solicitud de crédito
           </Button>
@@ -360,8 +398,8 @@ export default function PerfilPage() {
         </div>
       )}
 
-      {/* Historial de solicitudes */}
-      {solicitudesUsuario.length > 0 && (
+      {/* Solicitudes en perfil (resumen) */}
+      {!editando && solicitudesUsuario.length > 0 && (
         <div className='flex flex-col gap-3'>
           <div className='flex items-center gap-2'>
             <IconClipboardList size={14} className='text-primary/70' />
@@ -369,21 +407,28 @@ export default function PerfilPage() {
               Mis solicitudes ({solicitudesUsuario.length})
             </p>
           </div>
-          {solicitudesUsuario.map(s => (
+          {[...solicitudesUsuario].reverse().map(s => (
             <Card key={s.id} shadow='none' className='bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10'>
               <CardBody className='p-4 flex flex-row items-center justify-between gap-4'>
                 <div className='flex flex-col gap-1'>
                   <p className='font-mono text-xs text-gray-500 dark:text-gray-400'>{s.id}</p>
-                  <p className='text-sm font-semibold text-gray-800 dark:text-gray-100'>
-                    {formatCOP(Number(s.monto))} · {s.plazoMeses} meses
-                  </p>
-                  <p className='text-xs text-gray-500 dark:text-gray-400'>
-                    Cuota: {formatCOP(s.cuotaMensual)} · Total: {formatCOP(s.totalPagar)}
-                  </p>
+                  {s.monto ? (
+                    <p className='text-sm font-semibold text-gray-800 dark:text-gray-100'>
+                      {formatCOP(Number(s.monto))} · {s.plazoMeses} meses
+                    </p>
+                  ) : (
+                    <p className='text-sm text-gray-500 dark:text-gray-400'>
+                      En paso: <span className='font-medium'>{PASO_LABELS[s.paso] ?? `Paso ${s.paso}`}</span>
+                    </p>
+                  )}
                 </div>
                 <div className='flex flex-col items-end gap-1 shrink-0'>
-                  <Chip size='sm' color={s.status === 'completada' ? 'success' : 'warning'} variant='flat'>
-                    {s.status === 'completada' ? 'Enviada' : 'Pausada'}
+                  <Chip
+                    size='sm'
+                    color={s.status === 'completada' ? 'success' : s.status === 'en-progreso' ? 'warning' : 'danger'}
+                    variant='flat'
+                  >
+                    {s.status === 'completada' ? 'Enviada' : s.status === 'en-progreso' ? 'En progreso' : 'Abandonada'}
                   </Chip>
                   <p className='text-[10px] text-gray-400'>
                     {new Date(s.fecha).toLocaleDateString('es-CO')}
@@ -398,8 +443,14 @@ export default function PerfilPage() {
       {/* Modal: Ingresar con perfil existente */}
       <ModalIngreso
         isOpen={modalIngresoOpen}
-        onClose={() => setModalIngresoOpen(false)}
+        onClose={() => {
+          setModalIngresoOpen(false);
+          setMensajeIngreso(undefined);
+          setDocIngresoInicial(undefined);
+        }}
         onSuccess={handleLoginSuccess}
+        mensaje={mensajeIngreso}
+        docInicial={docIngresoInicial}
       />
 
       {/* Modal: Confirmar darse de baja */}
@@ -413,8 +464,7 @@ export default function PerfilPage() {
               </ModalHeader>
               <ModalBody>
                 <p className='text-sm text-gray-600 dark:text-gray-300'>
-                  Tu perfil y datos de registro serán eliminados de este dispositivo.
-                  Las solicitudes realizadas quedarán en el historial pero no podrás acceder a ellas sin volverte a registrar.
+                  Tu perfil, datos de registro y todas tus solicitudes serán eliminados de este dispositivo.
                 </p>
               </ModalBody>
               <ModalFooter>

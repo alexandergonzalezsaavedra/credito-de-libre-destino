@@ -5,10 +5,14 @@ import { IconUser, IconArrowRight, IconArrowLeft } from '@tabler/icons-react';
 import { useAppDispatch, useAppSelector } from '@/app/store';
 import { guardarDatosPersonales, setPaso, type DatosPersonales } from '@/app/store/solicitud/solicitudSlice';
 import { registrarEvento } from '@/app/store/audit/auditSlice';
+import { guardarPerfil } from '@/app/store/usuario/usuarioSlice';
+import { registrarSesionUsuario } from '@/app/store/sesiones/sesionesSlice';
 
 export default function StepDatosPersonales() {
   const dispatch = useAppDispatch();
   const guardado = useAppSelector(s => s.solicitud.datosPersonales);
+  const identidad = useAppSelector(s => s.solicitud.identidad);
+  const usuario = useAppSelector(s => s.usuario);
 
   const [form, setForm] = useState<DatosPersonales>({ ...guardado });
   const [errores, setErrores] = useState<Partial<Record<keyof DatosPersonales, string>>>({});
@@ -44,8 +48,30 @@ export default function StepDatosPersonales() {
   function handleContinuar() {
     const errs = validar();
     if (Object.keys(errs).length) { setErrores(errs); return; }
+
     dispatch(guardarDatosPersonales(form));
     dispatch(registrarEvento({ evento: 'DATOS_PERSONALES_GUARDADOS' }));
+
+    // Si el usuario aún no tiene sesión activa, registrarlo automáticamente
+    if (!usuario.numeroDocumento && identidad.numeroDocumento) {
+      const perfil = {
+        tipoDocumento: identidad.tipoDocumento,
+        numeroDocumento: identidad.numeroDocumento,
+        nombres: form.nombres,
+        apellidos: form.apellidos,
+        email: form.email,
+        telefono: form.telefono,
+        fechaNacimiento: form.fechaNacimiento,
+        direccion: form.direccion,
+        ciudad: form.ciudad,
+      };
+      dispatch(guardarPerfil(perfil));
+      dispatch(registrarSesionUsuario(perfil));
+      dispatch(registrarEvento({
+        evento: 'USUARIO_REGISTRADO_AUTOMATICO',
+        detalle: `${identidad.tipoDocumento} ${identidad.numeroDocumento}`,
+      }));
+    }
   }
 
   return (
@@ -82,7 +108,7 @@ export default function StepDatosPersonales() {
         />
         <Input
           label='Teléfono celular' value={form.telefono}
-          onValueChange={v => set('telefono', v)}
+          onValueChange={v => set('telefono', v.replace(/\s/g, ''))}
           onBlur={() => tocar('telefono')}
           inputMode='numeric' maxLength={10}
           isInvalid={!!errores.telefono} errorMessage={errores.telefono} isRequired

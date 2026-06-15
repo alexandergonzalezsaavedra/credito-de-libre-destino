@@ -1,43 +1,45 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 
 import themeReducer from './commun/selectThemeSlice';
 import solicitudReducer from './solicitud/solicitudSlice';
 import auditReducer from './audit/auditSlice';
 import usuarioReducer from './usuario/usuarioSlice';
-import historialReducer from './historial/historialSlice';
+import sesionesReducer from './sesiones/sesionesSlice';
 
-type PreloadedAppState = Partial<{
-  themeSlected: ReturnType<typeof themeReducer>;
-  solicitud:    ReturnType<typeof solicitudReducer>;
-  audit:        ReturnType<typeof auditReducer>;
-  usuario:      ReturnType<typeof usuarioReducer>;
-  historial:    ReturnType<typeof historialReducer>;
-}>;
+const rootReducer = combineReducers({
+  themeSlected: themeReducer,
+  solicitud:    solicitudReducer,
+  audit:        auditReducer,
+  usuario:      usuarioReducer,
+  sesiones:     sesionesReducer,
+});
+
+type PreloadedAppState = Partial<ReturnType<typeof rootReducer>>;
 
 function leerLocalStorage(): PreloadedAppState {
   if (typeof window === 'undefined') return {};
   const estado: PreloadedAppState = {};
 
-  // usuario-perfil → persistir guarda el objeto completo UsuarioState
+  // Sesión activa del usuario
   try {
     const raw = localStorage.getItem('usuario-perfil');
     if (raw) estado.usuario = JSON.parse(raw);
   } catch {}
 
-  // solicitudes-historial → persistir guarda { solicitudes: [] }
+  // Lista unificada de usuarios con sus solicitudes
   try {
-    const raw = localStorage.getItem('solicitudes-historial');
-    if (raw) estado.historial = JSON.parse(raw);
+    const raw = localStorage.getItem('sesionesUsuario');
+    if (raw) estado.sesiones = JSON.parse(raw);
   } catch {}
 
-  // solicitud-draft → el slice persiste su estado completo
+  // Borrador de solicitud en curso
   try {
     const raw = localStorage.getItem('solicitud-draft');
     if (raw) estado.solicitud = JSON.parse(raw);
   } catch {}
 
-  // solicitud-audit → el slice guarda SOLO el array de eventos (no el objeto { eventos })
+  // Audit — el slice guarda SOLO el array, no el objeto { eventos }
   try {
     const raw = localStorage.getItem('solicitud-audit');
     if (raw) {
@@ -50,17 +52,11 @@ function leerLocalStorage(): PreloadedAppState {
 }
 
 export const store = configureStore({
-  reducer: {
-    themeSlected: themeReducer,
-    solicitud: solicitudReducer,
-    audit: auditReducer,
-    usuario: usuarioReducer,
-    historial: historialReducer,
-  },
+  reducer: rootReducer,
   preloadedState: leerLocalStorage(),
 });
 
-export type RootState = ReturnType<typeof store.getState>;
+export type RootState = ReturnType<typeof rootReducer>;
 export type AppDispatch = typeof store.dispatch;
 
 export const useAppDispatch = () => useDispatch<AppDispatch>();

@@ -24,6 +24,7 @@ const TIPOS_EMPLEO = [
 export default function StepDatosFinancieros() {
   const dispatch = useAppDispatch();
   const guardado = useAppSelector((s) => s.solicitud.datosFinancieros);
+  const isLoggedIn = useAppSelector((s) => !!s.usuario.numeroDocumento);
 
   const [form, setForm] = useState<DatosFinancieros>({ ...guardado });
   const [errores, setErrores] = useState<
@@ -149,14 +150,16 @@ export default function StepDatosFinancieros() {
       </div>
 
       <div className='flex gap-3 mt-2'>
-        <Button
-          variant='flat'
-          radius='full'
-          onPress={() => dispatch(setPaso(1))}
-          startContent={<IconArrowLeft size={16} />}
-        >
-          Atrás
-        </Button>
+        {!isLoggedIn && (
+          <Button
+            variant='flat'
+            radius='full'
+            onPress={() => dispatch(setPaso(1))}
+            startContent={<IconArrowLeft size={16} />}
+          >
+            Atrás
+          </Button>
+        )}
         <Button
           color='primary'
           radius='full'
