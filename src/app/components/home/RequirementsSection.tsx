@@ -1,3 +1,4 @@
+'use client';
 import { Chip } from '@heroui/react';
 import {
   IconUserCheck,
@@ -5,6 +6,7 @@ import {
   IconReportMoney,
   IconCircleCheck,
 } from '@tabler/icons-react';
+import { FadeUp, StaggerParent, StaggerChild } from '@/app/components/commun/Motion';
 
 const requirements = [
   {
@@ -29,55 +31,54 @@ const requirements = [
 
 const RequirementsSection = () => {
   return (
-    <section className='py-16 px-4'>
+    <section className='py-16 px-4 bg-blue-950'>
       <div className='max-w-5xl mx-auto'>
         <div className='flex flex-col lg:flex-row gap-12 items-center'>
-          <div className='flex-1'>
+          <FadeUp className='flex-1'>
             <Chip
-              color='primary'
               variant='dot'
               size='sm'
-              className='mb-4 font-medium'
+              className='mb-4 font-medium text-blue-200 border-white/20'
             >
               Requisitos mínimos
             </Chip>
-            <h2 className='text-3xl font-bold text-gray-800 dark:text-gray-100 leading-tight mb-3'>
+            <h2 className='text-3xl font-bold text-white leading-tight mb-3'>
               ¿Quién puede
               <br />
-              <span className='text-primary'>solicitar el crédito?</span>
+              <span className='text-blue-300'>solicitar el crédito?</span>
             </h2>
-            <p className='text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-sm'>
+            <p className='text-blue-200/60 text-sm leading-relaxed max-w-sm'>
               Cumplir estos requisitos es suficiente para iniciar tu solicitud.
               El proceso es simple y lo hacemos todo por ti.
             </p>
-          </div>
+          </FadeUp>
 
           <div className='flex-1 w-full'>
-            <ul className='flex flex-col gap-4'>
+            <StaggerParent className='flex flex-col gap-4'>
               {requirements.map(({ icon: Icon, title, description }) => (
-                <li
+                <StaggerChild
                   key={title}
-                  className='flex items-center gap-4 py-4 border-b border-gray-100 dark:border-white/10 last:border-0'
+                  className='flex items-center gap-4 py-4 border-b border-white/10 last:border-0'
                 >
-                  <div className='flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary shrink-0'>
+                  <div className='flex items-center justify-center w-10 h-10 rounded-full bg-white/10 text-blue-200 shrink-0'>
                     <Icon size={20} stroke={1.8} />
                   </div>
                   <div className='flex-1'>
-                    <p className='font-semibold text-gray-800 dark:text-gray-100 text-sm'>
+                    <p className='font-semibold text-white text-sm'>
                       {title}
                     </p>
-                    <p className='text-xs text-gray-500 dark:text-gray-400 mt-0.5'>
+                    <p className='text-xs text-blue-200/60 mt-0.5'>
                       {description}
                     </p>
                   </div>
                   <IconCircleCheck
                     size={18}
-                    className='text-primary shrink-0'
+                    className='text-blue-300 shrink-0'
                     stroke={1.8}
                   />
-                </li>
+                </StaggerChild>
               ))}
-            </ul>
+            </StaggerParent>
           </div>
         </div>
       </div>

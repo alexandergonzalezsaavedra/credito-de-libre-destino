@@ -11,7 +11,7 @@ const AUTORIZACIONES = [
     key: 'habeasData' as const,
     titulo: 'Tratamiento de datos personales (Habeas Data)',
     descripcion:
-      'Autorizo a Banco Caja Social para recolectar, almacenar, usar, circular y suprimir mis datos personales con fines de vinculación, oferta de productos y servicios, según la Ley 1581 de 2012.',
+      'Autorizo la recolección, almacenamiento, uso, circulación y supresión de mis datos personales con fines de vinculación, oferta de productos y servicios, según la Ley 1581 de 2012.',
   },
   {
     key: 'consultaCentrales' as const,

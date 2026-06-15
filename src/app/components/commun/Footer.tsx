@@ -14,7 +14,7 @@ const Footer = () => {
         <div className='flex flex-col items-center sm:items-start gap-1'>
           <LogoBrand />
           <p className='text-xs text-gray-400 dark:text-gray-500 mt-1'>
-            © {year} Banco Caja Social · Crédito de Libre Destino
+            © {year} CLD · Crédito de Libre Destino
           </p>
           <p className='text-xs text-gray-400 dark:text-gray-500'>
             Powered by{' '}

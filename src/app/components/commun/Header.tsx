@@ -6,7 +6,7 @@ import {
 } from '@heroui/react';
 import {
   IconCreditCardPay, IconUserPlus, IconUser, IconLogout,
-  IconClipboardList, IconLogin,
+  IconClipboardList, IconLogin, IconBrandLinkedin, IconBrandGithub,
 } from '@tabler/icons-react';
 import LogoBrand from './LogoBrand';
 import { Moon, Sun } from 'lucide-react';
@@ -244,6 +244,38 @@ const Header = () => {
                 <IconCreditCardPay size={18} />
                 Solicitar ahora
               </button>
+            </NavbarMenuItem>
+
+            {/* Autor */}
+            <NavbarMenuItem className='mt-auto'>
+              <div className='rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 p-4 flex items-center justify-between gap-3'>
+                <div>
+                  <p className='text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-0.5'>
+                    Desarrollado por
+                  </p>
+                  <p className='text-sm font-semibold text-gray-800 dark:text-gray-100'>
+                    Alexander González
+                  </p>
+                </div>
+                <div className='flex items-center gap-2'>
+                  <Link
+                    href='https://www.linkedin.com/in/alexander-gonzalez-saavedra'
+                    isExternal
+                    aria-label='LinkedIn'
+                    className='w-9 h-9 rounded-full bg-white dark:bg-white/10 shadow-sm flex items-center justify-center text-[#0A66C2] hover:scale-110 transition-transform'
+                  >
+                    <IconBrandLinkedin size={18} />
+                  </Link>
+                  <Link
+                    href='https://github.com/alexandergonzalezsaavedra/credito-de-libre-destino'
+                    isExternal
+                    aria-label='GitHub'
+                    className='w-9 h-9 rounded-full bg-white dark:bg-white/10 shadow-sm flex items-center justify-center text-gray-700 dark:text-gray-200 hover:scale-110 transition-transform'
+                  >
+                    <IconBrandGithub size={18} />
+                  </Link>
+                </div>
+              </div>
             </NavbarMenuItem>
           </NavbarMenu>
         </Navbar>

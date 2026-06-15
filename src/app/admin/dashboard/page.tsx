@@ -82,6 +82,8 @@ export default function AdminDashboardPage() {
   const [todas, setTodas]       = useState<FilaSolicitud[]>([]);
   const [cargando, setCargando] = useState(true);
   const [filtroCedula, setFiltroCedula] = useState('');
+  const [filtroStatus, setFiltroStatus] = useState<string | null>(null);
+  const [filtroPaso,   setFiltroPaso]   = useState<number | null>(null);
   const [pagina, setPagina]     = useState(1);
 
   const cargar = useCallback(() => {
@@ -95,15 +97,24 @@ export default function AdminDashboardPage() {
     cargar();
   }, [router, cargar]);
 
-  // Filtrado por cédula
+  // Filtrado combinado
   const filtradas = useMemo(() => {
+    let lista = todas;
     const term = filtroCedula.trim();
-    if (!term) return todas;
-    return todas.filter(s => s.numeroDocumento.includes(term));
-  }, [todas, filtroCedula]);
+    if (term)          lista = lista.filter(s => s.numeroDocumento.includes(term));
+    if (filtroStatus)  lista = lista.filter(s => s.status === filtroStatus);
+    if (filtroPaso !== null) lista = lista.filter(s => s.paso === filtroPaso);
+    return lista;
+  }, [todas, filtroCedula, filtroStatus, filtroPaso]);
 
-  // Resetear página al cambiar filtro
-  useEffect(() => { setPagina(1); }, [filtroCedula]);
+  // Pasos disponibles según status filtrado
+  const pasosDisponibles = useMemo(() => {
+    const base = filtroStatus ? todas.filter(s => s.status === filtroStatus) : todas;
+    return [...new Set(base.map(s => s.paso))].sort((a, b) => a - b);
+  }, [todas, filtroStatus]);
+
+  // Resetear página al cambiar cualquier filtro
+  useEffect(() => { setPagina(1); }, [filtroCedula, filtroStatus, filtroPaso]);
 
   // Paginación
   const totalPaginas = Math.max(1, Math.ceil(filtradas.length / POR_PAGINA));
@@ -135,44 +146,111 @@ export default function AdminDashboardPage() {
         </Button>
       </div>
 
-      {/* Tarjetas resumen */}
+      {/* Tarjetas resumen — clickeables para filtrar por estado */}
       <div className='grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6'>
         {[
-          { key: 'en-progreso', label: 'En proceso',  icon: IconLoader2,       color: 'text-primary', bg: 'bg-primary/10' },
-          { key: 'completada',  label: 'Completadas', icon: IconCircleCheck,   color: 'text-success', bg: 'bg-success/10' },
-          { key: 'abandonada',  label: 'Abandonadas', icon: IconAlertTriangle, color: 'text-danger',  bg: 'bg-danger/10'  },
-        ].map(({ key, label, icon: Icon, color, bg }) => (
-          <Card key={key} shadow='sm' className='bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700'>
-            <CardBody className='flex flex-row items-center gap-4 p-4'>
-              <div className={`w-11 h-11 rounded-xl ${bg} ${color} flex items-center justify-center shrink-0`}>
-                <Icon size={22} stroke={1.5} />
-              </div>
-              <div>
-                <p className='text-2xl font-extrabold text-gray-900 dark:text-white'>{totales[key] ?? 0}</p>
-                <p className='text-xs text-gray-500 dark:text-gray-400'>{label}</p>
-              </div>
-            </CardBody>
-          </Card>
-        ))}
+          { key: 'en-progreso', label: 'En proceso',  icon: IconLoader2,       color: 'text-primary', bg: 'bg-primary/10', ring: 'ring-primary' },
+          { key: 'completada',  label: 'Completadas', icon: IconCircleCheck,   color: 'text-success', bg: 'bg-success/10', ring: 'ring-success' },
+          { key: 'abandonada',  label: 'Abandonadas', icon: IconAlertTriangle, color: 'text-danger',  bg: 'bg-danger/10',  ring: 'ring-danger'  },
+        ].map(({ key, label, icon: Icon, color, bg, ring }) => {
+          const activo = filtroStatus === key;
+          return (
+            <Card
+              key={key}
+              shadow='sm'
+              isPressable
+              onPress={() => { setFiltroStatus(activo ? null : key); setFiltroPaso(null); }}
+              className={`bg-white dark:bg-gray-900 border transition-all cursor-pointer ${activo ? `border-transparent ring-2 ${ring}` : 'border-gray-200 dark:border-gray-700'}`}
+            >
+              <CardBody className='flex flex-row items-center gap-4 p-4'>
+                <div className={`w-11 h-11 rounded-xl ${bg} ${color} flex items-center justify-center shrink-0`}>
+                  <Icon size={22} stroke={1.5} />
+                </div>
+                <div>
+                  <p className='text-2xl font-extrabold text-gray-900 dark:text-white'>{totales[key] ?? 0}</p>
+                  <p className='text-xs text-gray-500 dark:text-gray-400'>{label}</p>
+                </div>
+              </CardBody>
+            </Card>
+          );
+        })}
       </div>
 
-      {/* Filtro por cédula */}
-      <div className='mb-4 max-w-xs'>
-        <Input
-          placeholder='Filtrar por número de cédula'
-          value={filtroCedula}
-          onValueChange={v => setFiltroCedula(v.replace(/\D/g, ''))}
-          inputMode='numeric'
-          startContent={<IconSearch size={15} className='text-gray-400' />}
-          endContent={filtroCedula && (
-            <button onClick={() => setFiltroCedula('')} className='text-gray-400 hover:text-gray-600'>
-              <IconX size={14} />
-            </button>
+      {/* Filtros */}
+      <div className='flex flex-col gap-3 mb-4'>
+
+        {/* Búsqueda + limpiar */}
+        <div className='flex items-center gap-3 flex-wrap'>
+          <div className='w-64'>
+            <Input
+              placeholder='Filtrar por número de cédula'
+              value={filtroCedula}
+              onValueChange={v => setFiltroCedula(v.replace(/\D/g, ''))}
+              inputMode='numeric'
+              startContent={<IconSearch size={15} className='text-gray-400' />}
+              endContent={filtroCedula && (
+                <button onClick={() => setFiltroCedula('')} className='text-gray-400 hover:text-gray-600'>
+                  <IconX size={14} />
+                </button>
+              )}
+              size='sm'
+              radius='full'
+              classNames={{ inputWrapper: 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700' }}
+            />
+          </div>
+          {(filtroStatus || filtroPaso !== null || filtroCedula) && (
+            <Button
+              size='sm' variant='flat' radius='full'
+              onPress={() => { setFiltroStatus(null); setFiltroPaso(null); setFiltroCedula(''); }}
+              startContent={<IconX size={13} />}
+              className='text-gray-500'
+            >
+              Limpiar filtros
+            </Button>
           )}
-          size='sm'
-          radius='full'
-          classNames={{ inputWrapper: 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700' }}
-        />
+        </div>
+
+        {/* Chips de estado */}
+        <div className='flex flex-wrap gap-1.5'>
+          <span className='text-[10px] font-bold uppercase tracking-widest text-gray-400 self-center mr-1'>Estado:</span>
+          {([
+            { key: null,          label: 'Todos',        color: 'default'  },
+            { key: 'completada',  label: 'Completadas',  color: 'success'  },
+            { key: 'en-progreso', label: 'En progreso',  color: 'warning'  },
+            { key: 'abandonada',  label: 'Abandonadas',  color: 'danger'   },
+          ] as { key: string | null; label: string; color: 'default' | 'success' | 'warning' | 'danger' }[]).map(({ key, label, color }) => (
+            <Chip
+              key={label}
+              size='sm'
+              variant={filtroStatus === key ? 'solid' : 'flat'}
+              color={filtroStatus === key ? color : 'default'}
+              className='cursor-pointer select-none'
+              onClick={() => { setFiltroStatus(key); setFiltroPaso(null); }}
+            >
+              {label}
+            </Chip>
+          ))}
+        </div>
+
+        {/* Chips de paso */}
+        {pasosDisponibles.length > 1 && (
+          <div className='flex flex-wrap gap-1.5'>
+            <span className='text-[10px] font-bold uppercase tracking-widest text-gray-400 self-center mr-1'>Paso:</span>
+            {pasosDisponibles.map(paso => (
+              <Chip
+                key={paso}
+                size='sm'
+                variant={filtroPaso === paso ? 'solid' : 'bordered'}
+                color={filtroPaso === paso ? 'primary' : 'default'}
+                className='cursor-pointer select-none'
+                onClick={() => setFiltroPaso(filtroPaso === paso ? null : paso)}
+              >
+                {paso + 1}. {PASO_LABEL[paso] ?? `Paso ${paso}`}
+              </Chip>
+            ))}
+          </div>
+        )}
+
       </div>
 
       {/* Tabla */}
@@ -180,13 +258,15 @@ export default function AdminDashboardPage() {
         <div className='flex flex-col items-center gap-3 py-20 text-gray-400'>
           <IconShieldOff size={44} stroke={1.2} />
           <p className='text-sm text-center max-w-xs'>
-            {filtroCedula
-              ? `No se encontraron solicitudes para la cédula "${filtroCedula}".`
+            {filtradas.length === 0 && todas.length > 0
+              ? 'Ninguna solicitud coincide con los filtros aplicados.'
               : 'No hay solicitudes registradas todavía.'
             }
           </p>
-          {filtroCedula && (
-            <Button size='sm' variant='flat' onPress={() => setFiltroCedula('')}>Limpiar filtro</Button>
+          {(filtroStatus || filtroPaso !== null || filtroCedula) && (
+            <Button size='sm' variant='flat' onPress={() => { setFiltroStatus(null); setFiltroPaso(null); setFiltroCedula(''); }}>
+              Limpiar filtros
+            </Button>
           )}
         </div>
       ) : (

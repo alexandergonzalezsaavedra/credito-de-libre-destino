@@ -7,6 +7,7 @@ import {
 import {
   IconClipboardList, IconCreditCard, IconCalendar, IconArrowRight,
   IconInbox, IconLogin, IconEye, IconPlayerPlay, IconUser, IconBriefcase,
+  IconSortAscending, IconSortDescending,
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -93,67 +94,79 @@ function ModalDetalle({
   const { datosPersonales: dp, datosFinancieros: df, simulacion: sim } = solicitud;
   const res = sim?.resultado ?? null;
 
+  const statusColor = solicitud.status === 'completada' ? 'success' : solicitud.status === 'en-progreso' ? 'warning' : 'danger';
+  const statusLabel = solicitud.status === 'completada' ? 'Enviada' : solicitud.status === 'en-progreso' ? 'En progreso' : 'Abandonada';
+
   return (
-    <Modal isOpen={isOpen} onOpenChange={open => { if (!open) onClose(); }} size='2xl' scrollBehavior='inside'>
-      <ModalContent>
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={open => { if (!open) onClose(); }}
+      size='2xl'
+    >
+      <ModalContent className='max-h-[90svh] flex flex-col overflow-hidden'>
         {(onCloseInternal) => (
           <>
-            <ModalHeader className='flex flex-col gap-0.5'>
-              <span className='font-mono text-sm text-primary'>{solicitud.id}</span>
-              <span className='text-xs font-normal text-gray-400'>{formatFecha(solicitud.fecha)}</span>
+            <ModalHeader className='flex flex-row items-start justify-between gap-3 pb-3 shrink-0'>
+              <div>
+                <p className='font-mono text-sm font-bold text-primary'>{solicitud.id}</p>
+                <p className='text-xs font-normal text-gray-400 mt-0.5'>{formatFecha(solicitud.fecha)}</p>
+              </div>
+              <Chip size='sm' color={statusColor} variant='flat' className='shrink-0 mt-0.5'>
+                {statusLabel}
+              </Chip>
             </ModalHeader>
 
-            <ModalBody className='flex flex-col gap-4 pb-2'>
-              {/* Status + paso */}
-              <div className='flex items-center gap-2 flex-wrap'>
-                <Chip
-                  size='sm'
-                  color={solicitud.status === 'completada' ? 'success' : solicitud.status === 'en-progreso' ? 'warning' : 'danger'}
-                  variant='flat'
-                >
-                  {solicitud.status === 'completada' ? 'Enviada' : solicitud.status === 'en-progreso' ? 'En progreso' : 'Abandonada'}
-                </Chip>
-                {solicitud.status !== 'completada' && (
-                  <span className='text-xs text-gray-400'>
-                    Último paso: <strong>{PASO_LABELS[solicitud.paso] ?? `Paso ${solicitud.paso}`}</strong>
+            <ModalBody className='p-0 overflow-y-auto min-h-0 flex-1'>
+              <div className='flex flex-col gap-5 px-6 py-2 pb-6'>
+
+              {/* Aviso en progreso */}
+              {solicitud.status !== 'completada' && (
+                <div className='bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-xl px-4 py-3'>
+                  <span className='text-xs text-amber-700 dark:text-amber-400'>
+                    Último paso completado: <strong>{PASO_LABELS[solicitud.paso] ?? `Paso ${solicitud.paso}`}</strong>
                   </span>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Condiciones del crédito */}
               {res && (
-                <Card shadow='none' className='bg-primary border-0 overflow-hidden'>
-                  <CardBody className='p-4'>
-                    <p className='text-[10px] font-bold uppercase tracking-widest text-white/60 mb-2'>
+                <div className='rounded-2xl overflow-hidden bg-linear-to-br from-primary to-blue-700'>
+                  <div className='px-5 pt-5 pb-4'>
+                    <p className='text-[10px] font-bold uppercase tracking-widest text-white/50 mb-3'>
                       Condiciones del crédito
                     </p>
-                    <div className='grid grid-cols-2 gap-x-6 gap-y-1.5'>
-                      {[
-                        ['Monto', formatCOP(Number(solicitud.monto))],
-                        ['Plazo', `${solicitud.plazoMeses} meses`],
-                        ['Cuota mensual', formatCOP(res.cuotaMensual)],
-                        ['Tasa EA', `${res.tasaEA}%`],
-                        ['Total intereses', formatCOP(res.totalIntereses)],
-                        ['Total a pagar', formatCOP(res.totalPagar)],
-                      ].map(([label, value]) => (
-                        <div key={label} className='contents'>
-                          <span className='text-white/60 text-xs'>{label}</span>
-                          <span className='text-white font-semibold text-xs text-right'>{value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardBody>
-                </Card>
+                    <p className='text-white/60 text-xs mb-0.5'>Monto aprobado</p>
+                    <p className='text-white text-3xl font-extrabold leading-none'>
+                      {formatCOP(Number(solicitud.monto))}
+                    </p>
+                  </div>
+                  <div className='border-t border-white/20 divide-y divide-white/10'>
+                    {[
+                      ['Plazo', `${solicitud.plazoMeses} meses`],
+                      ['Cuota mensual', formatCOP(res.cuotaMensual)],
+                      ['Tasa EA', `${res.tasaEA}%`],
+                      ['Total intereses', formatCOP(res.totalIntereses)],
+                      ['Total a pagar', formatCOP(res.totalPagar)],
+                    ].map(([label, value]) => (
+                      <div key={label} className='flex items-center justify-between px-5 py-3'>
+                        <p className='text-white/60 text-xs'>{label}</p>
+                        <p className='text-white font-semibold text-sm'>{value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {/* Datos personales */}
               {dp && (
-                <div>
-                  <div className='flex items-center gap-1.5 mb-2'>
-                    <IconUser size={13} className='text-primary/70' />
-                    <p className='text-[10px] font-bold uppercase tracking-widest text-gray-400'>Datos personales</p>
+                <div className='rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden'>
+                  <div className='flex items-center gap-2 px-4 py-3 bg-gray-50 dark:bg-white/5 border-b border-gray-100 dark:border-white/10'>
+                    <IconUser size={13} className='text-primary' />
+                    <p className='text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400'>
+                      Datos personales
+                    </p>
                   </div>
-                  <div className='grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs'>
+                  <div className='divide-y divide-gray-100 dark:divide-white/10'>
                     {[
                       ['Nombre', `${dp.nombres} ${dp.apellidos}`],
                       ['Email', dp.email],
@@ -161,9 +174,9 @@ function ModalDetalle({
                       ['Ciudad', dp.ciudad],
                       ['Dirección', dp.direccion],
                     ].map(([label, value]) => (
-                      <div key={label}>
-                        <p className='text-gray-400'>{label}</p>
-                        <p className='font-medium text-gray-800 dark:text-gray-100 truncate'>{value || '—'}</p>
+                      <div key={label} className='flex items-start justify-between gap-4 px-4 py-3'>
+                        <p className='text-xs text-gray-400 shrink-0 w-24'>{label}</p>
+                        <p className='text-sm font-medium text-gray-800 dark:text-gray-100 text-right break-all'>{value || '—'}</p>
                       </div>
                     ))}
                   </div>
@@ -172,32 +185,36 @@ function ModalDetalle({
 
               {/* Datos financieros */}
               {df && (
-                <div>
-                  <div className='flex items-center gap-1.5 mb-2'>
-                    <IconBriefcase size={13} className='text-primary/70' />
-                    <p className='text-[10px] font-bold uppercase tracking-widest text-gray-400'>Datos financieros</p>
+                <div className='rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden'>
+                  <div className='flex items-center gap-2 px-4 py-3 bg-gray-50 dark:bg-white/5 border-b border-gray-100 dark:border-white/10'>
+                    <IconBriefcase size={13} className='text-primary' />
+                    <p className='text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400'>
+                      Datos financieros
+                    </p>
                   </div>
-                  <div className='grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs'>
-                    {[
+                  <div className='divide-y divide-gray-100 dark:divide-white/10'>
+                    {([
                       ['Tipo empleo', TIPOS_EMP[df.tipoEmpleo] ?? df.tipoEmpleo],
                       df.empresa ? ['Empresa', df.empresa] : null,
                       ['Ingreso mensual', formatCOP(Number(df.ingresoMensual))],
                       df.otrosIngresos ? ['Otros ingresos', formatCOP(Number(df.otrosIngresos))] : null,
                       ['Gastos mensuales', formatCOP(Number(df.gastosMensuales))],
-                    ]
+                    ] as ([string, string] | null)[])
                       .filter((row): row is [string, string] => row !== null)
                       .map(([label, value]) => (
-                        <div key={label}>
-                          <p className='text-gray-400'>{label}</p>
-                          <p className='font-medium text-gray-800 dark:text-gray-100'>{value || '—'}</p>
+                        <div key={label} className='flex items-start justify-between gap-4 px-4 py-3'>
+                          <p className='text-xs text-gray-400 shrink-0 w-32'>{label}</p>
+                          <p className='text-sm font-medium text-gray-800 dark:text-gray-100 text-right'>{value || '—'}</p>
                         </div>
                       ))}
                   </div>
                 </div>
               )}
+
+              </div>
             </ModalBody>
 
-            <ModalFooter>
+            <ModalFooter className='border-t border-gray-100 dark:border-white/10 shrink-0 mt-auto'>
               <Button variant='flat' radius='full' onPress={() => { onCloseInternal(); onClose(); }}>
                 Cerrar
               </Button>
@@ -314,6 +331,9 @@ export default function HistorialPage() {
   const [mounted, setMounted] = useState(false);
   const [modalIngresoOpen, setModalIngresoOpen] = useState(false);
   const [solicitudDetalle, setSolicitudDetalle] = useState<SolicitudSesion | null>(null);
+  const [orden, setOrden] = useState<'desc' | 'asc'>('desc');
+  const [filtroStatus, setFiltroStatus] = useState<string | null>(null);
+  const [filtroPaso, setFiltroPaso] = useState<number | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -439,25 +459,93 @@ export default function HistorialPage() {
           />
         </div>
 
-        {/* Divider + acción */}
-        <div className='flex items-center justify-between'>
+        {/* Divider + acciones */}
+        <div className='flex items-center justify-between gap-2 flex-wrap'>
           <div className='flex items-center gap-2'>
             <IconCreditCard size={14} className='text-primary/70' />
             <p className='text-[10px] font-bold uppercase tracking-widest text-gray-400'>
-              Detalle ({solicitudes.length})
+              {(() => {
+                const base = orden === 'desc' ? [...solicitudes].reverse() : [...solicitudes];
+                const filtradas = base
+                  .filter(s => !filtroStatus || s.status === filtroStatus)
+                  .filter(s => filtroPaso === null || s.paso === filtroPaso);
+                return filtradas.length === solicitudes.length
+                  ? `Detalle (${solicitudes.length})`
+                  : `Detalle (${filtradas.length} de ${solicitudes.length})`;
+              })()}
             </p>
           </div>
-          <Button as={Link} href='/solicitar-credito' size='sm' color='primary'
-            variant='flat' radius='full' endContent={<IconArrowRight size={14} />}>
-            Nueva solicitud
-          </Button>
+          <div className='flex items-center gap-2'>
+            <Button
+              size='sm' variant='flat' radius='full'
+              startContent={orden === 'desc' ? <IconSortDescending size={14} /> : <IconSortAscending size={14} />}
+              onPress={() => setOrden(o => o === 'desc' ? 'asc' : 'desc')}
+              className='text-gray-500 dark:text-gray-400'
+            >
+              {orden === 'desc' ? 'Más reciente' : 'Más antigua'}
+            </Button>
+            <Button as={Link} href='/solicitar-credito' size='sm' color='primary'
+              variant='flat' radius='full' endContent={<IconArrowRight size={14} />}>
+              Nueva solicitud
+            </Button>
+          </div>
         </div>
 
-        {/* Lista — más reciente primero */}
+        {/* Filtros */}
+        <div className='flex flex-col gap-2'>
+          {/* Por estado */}
+          <div className='flex flex-wrap gap-1.5'>
+            {([
+              { key: null,           label: 'Todas',        color: 'default'  },
+              { key: 'completada',   label: 'Enviadas',     color: 'success'  },
+              { key: 'en-progreso',  label: 'En progreso',  color: 'warning'  },
+              { key: 'abandonada',   label: 'Abandonadas',  color: 'danger'   },
+            ] as { key: string | null; label: string; color: 'default' | 'success' | 'warning' | 'danger' }[]).map(({ key, label, color }) => (
+              <Chip
+                key={label}
+                size='sm'
+                variant={filtroStatus === key ? 'solid' : 'flat'}
+                color={filtroStatus === key ? color : 'default'}
+                className='cursor-pointer select-none'
+                onClick={() => { setFiltroStatus(key); setFiltroPaso(null); }}
+              >
+                {label}
+              </Chip>
+            ))}
+          </div>
+
+          {/* Por paso (solo si el filtro de estado muestra solicitudes no completadas) */}
+          {(() => {
+            const base = filtroStatus ? solicitudes.filter(s => s.status === filtroStatus) : solicitudes;
+            const pasos = [...new Set(base.filter(s => s.status !== 'completada').map(s => s.paso))].sort((a, b) => a - b);
+            if (!pasos.length) return null;
+            return (
+              <div className='flex flex-wrap gap-1.5'>
+                {pasos.map(paso => (
+                  <Chip
+                    key={paso}
+                    size='sm'
+                    variant={filtroPaso === paso ? 'solid' : 'bordered'}
+                    color={filtroPaso === paso ? 'primary' : 'default'}
+                    className='cursor-pointer select-none'
+                    onClick={() => setFiltroPaso(filtroPaso === paso ? null : paso)}
+                  >
+                    {PASO_LABELS[paso] ?? `Paso ${paso}`}
+                  </Chip>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* Lista */}
         <div className='flex flex-col gap-3'>
-          {[...solicitudes].reverse().map(s => (
-            <TarjetaSolicitud key={s.id} s={s} onVerDetalle={setSolicitudDetalle} />
-          ))}
+          {(orden === 'desc' ? [...solicitudes].reverse() : [...solicitudes])
+            .filter(s => !filtroStatus || s.status === filtroStatus)
+            .filter(s => filtroPaso === null || s.paso === filtroPaso)
+            .map(s => (
+              <TarjetaSolicitud key={s.id} s={s} onVerDetalle={setSolicitudDetalle} />
+            ))}
         </div>
       </main>
 

@@ -2,7 +2,7 @@ import { HeroUIProvider } from '@heroui/react';
 import AdminHeader from './_components/AdminHeader';
 
 export const metadata = {
-  title: 'Admin — CLD Banco Caja Social',
+  title: 'Admin — CLD',
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
