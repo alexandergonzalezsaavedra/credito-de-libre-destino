@@ -271,34 +271,38 @@ export default function StepResumen() {
       </div>
 
       {/* Actions */}
-      <div className='flex gap-3 mt-1'>
-        <Button
-          variant='flat'
-          radius='full'
-          onPress={() => dispatch(setPaso(4))}
-          startContent={<IconArrowLeft size={16} />}
-        >
-          Atrás
-        </Button>
-        <Button
-          variant='flat'
-          color='danger'
-          radius='full'
-          onPress={onOpen}
-          startContent={<IconX size={16} />}
-        >
-          Abandonar
-        </Button>
+      <div className='flex flex-col gap-2 mt-1'>
         <Button
           color='primary'
           radius='full'
-          className='flex-1 font-semibold'
+          className='w-full font-semibold'
           isLoading={confirmando}
           onPress={handleConfirmar}
           endContent={!confirmando && <IconCheck size={18} />}
         >
           {confirmando ? 'Enviando...' : 'Confirmar solicitud'}
         </Button>
+        <div className='flex gap-2'>
+          <Button
+            variant='flat'
+            radius='full'
+            className='flex-1'
+            onPress={() => dispatch(setPaso(4))}
+            startContent={<IconArrowLeft size={16} />}
+          >
+            Atrás
+          </Button>
+          <Button
+            variant='flat'
+            color='danger'
+            radius='full'
+            className='flex-1'
+            onPress={onOpen}
+            startContent={<IconX size={16} />}
+          >
+            Abandonar
+          </Button>
+        </div>
       </div>
 
       <Modal
