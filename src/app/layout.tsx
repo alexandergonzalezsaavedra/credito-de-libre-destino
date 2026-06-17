@@ -27,6 +27,13 @@ export default function RootLayout({
     <html suppressHydrationWarning data-scroll-behavior='smooth'>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}
+        <Script src='https://www.googletagmanager.com/gtag/js?id=G-TQB3SJV5HN' strategy='afterInteractive' />
+        <Script id='gtag-init' strategy='afterInteractive'>{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TQB3SJV5HN');
+        `}</Script>
         <Script id='clarity' strategy='afterInteractive'>{`
           (function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
