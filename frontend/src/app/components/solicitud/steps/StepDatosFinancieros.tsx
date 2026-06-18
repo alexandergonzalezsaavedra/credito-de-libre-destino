@@ -14,6 +14,7 @@ import {
 } from '@/app/store/solicitud/solicitudSlice';
 import { registrarEvento } from '@/app/store/audit/auditSlice';
 import { formatearMonto, desformatearMonto } from '@/lib/formato';
+import { applicationsApi } from '@/lib/apiClient';
 
 const TIPOS_EMPLEO = [
   { key: 'empleado_publico', label: 'Empleado' },
@@ -25,6 +26,7 @@ export default function StepDatosFinancieros() {
   const dispatch = useAppDispatch();
   const guardado = useAppSelector((s) => s.solicitud.datosFinancieros);
   const isLoggedIn = useAppSelector((s) => !!s.usuario.numeroDocumento);
+  const backendId = useAppSelector((s) => s.solicitud.backendId);
 
   const [form, setForm] = useState<DatosFinancieros>({ ...guardado });
   const [errores, setErrores] = useState<
@@ -55,7 +57,7 @@ export default function StepDatosFinancieros() {
     setErrores((e) => ({ ...e, [campo]: errs[campo] }));
   }
 
-  function handleContinuar() {
+  async function handleContinuar() {
     const errs = validar();
     if (Object.keys(errs).length) {
       setErrores(errs);
@@ -64,6 +66,20 @@ export default function StepDatosFinancieros() {
     dispatch(guardarDatosFinancieros(form));
     dispatch(registrarEvento({ evento: 'DATOS_FINANCIEROS_GUARDADOS' }));
     addToast({ title: 'Datos financieros guardados', description: 'Tu información de ingresos fue registrada correctamente.', color: 'success' });
+
+    if (backendId) {
+      try {
+        await applicationsApi.update(backendId, {
+          pasoActual: 3,
+          datosFinancieros: {
+            ingresos: Number(form.ingresoMensual),
+            gastos: Number(form.gastosMensuales),
+          },
+        });
+      } catch {
+        // No bloquea el flujo
+      }
+    }
   }
 
   const esPensionado = form.tipoEmpleo === 'pensionado';

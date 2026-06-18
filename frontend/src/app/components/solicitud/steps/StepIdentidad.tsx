@@ -7,12 +7,14 @@ import { useAppDispatch, useAppSelector } from '@/app/store';
 import {
   iniciarSolicitud,
   guardarDatosPersonales,
+  setBackendId,
   type TipoDocumento,
 } from '@/app/store/solicitud/solicitudSlice';
 import { registrarEvento } from '@/app/store/audit/auditSlice';
 import { guardarPerfil, type UsuarioPerfil } from '@/app/store/usuario/usuarioSlice';
 import { registrarSesionUsuario } from '@/app/store/sesiones/sesionesSlice';
 import { capturarUtms, utmsToString } from '@/lib/utms';
+import { applicationsApi } from '@/lib/apiClient';
 import ModalIngreso from '@/app/components/commun/ModalIngreso';
 
 const TIPOS_DOCUMENTO = [
@@ -93,12 +95,21 @@ export default function StepIdentidad() {
         evento: 'IDENTIDAD_VALIDADA',
         detalle: `${tipoDocumento} ${numeroDocumento}${utmDetalle ? ` | ${utmDetalle}` : ''}`,
       }));
+      // Crear la solicitud en el backend
+      try {
+        const app = await applicationsApi.create({
+          identidad: { tipoDocumento, numeroDocumento },
+        });
+        dispatch(setBackendId(app.id));
+      } catch {
+        addToast({ title: 'Aviso', description: 'No fue posible sincronizar con el servidor. Tus datos se guardan localmente.', color: 'warning' });
+      }
     } finally {
       setCargando(false);
     }
   }
 
-  function handleLoginSuccess(perfil: UsuarioPerfil) {
+  async function handleLoginSuccess(perfil: UsuarioPerfil) {
     dispatch(guardarPerfil(perfil));
     dispatch(registrarSesionUsuario(perfil));
     dispatch(iniciarSolicitud({
@@ -109,7 +120,7 @@ export default function StepIdentidad() {
       },
       utms: capturarUtms(),
     }));
-    dispatch(guardarDatosPersonales({
+    const dp = {
       nombres: perfil.nombres,
       apellidos: perfil.apellidos,
       email: perfil.email,
@@ -117,13 +128,24 @@ export default function StepIdentidad() {
       fechaNacimiento: perfil.fechaNacimiento,
       direccion: perfil.direccion,
       ciudad: perfil.ciudad,
-    }));
+    };
+    dispatch(guardarDatosPersonales(dp));
     dispatch(registrarEvento({
       evento: 'LOGIN_PERFIL_SOLICITUD',
       detalle: `${perfil.tipoDocumento} ${perfil.numeroDocumento}`,
     }));
     setModalOpen(false);
     setMensajeModal(undefined);
+    // Crear la solicitud en el backend con los datos personales ya disponibles
+    try {
+      const app = await applicationsApi.create({
+        identidad: { tipoDocumento: perfil.tipoDocumento, numeroDocumento: perfil.numeroDocumento },
+        datosPersonales: dp,
+      });
+      dispatch(setBackendId(app.id));
+    } catch {
+      // Sincronización no crítica: continúa localmente
+    }
   }
 
   return (

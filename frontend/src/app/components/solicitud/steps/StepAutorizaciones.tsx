@@ -5,6 +5,7 @@ import { IconShieldCheck, IconArrowRight, IconArrowLeft } from '@tabler/icons-re
 import { useAppDispatch, useAppSelector } from '@/app/store';
 import { guardarAutorizaciones, setPaso } from '@/app/store/solicitud/solicitudSlice';
 import { registrarEvento } from '@/app/store/audit/auditSlice';
+import { applicationsApi } from '@/lib/apiClient';
 
 const AUTORIZACIONES = [
   {
@@ -30,6 +31,7 @@ const AUTORIZACIONES = [
 export default function StepAutorizaciones() {
   const dispatch = useAppDispatch();
   const guardado = useAppSelector(s => s.solicitud.autorizaciones);
+  const backendId = useAppSelector(s => s.solicitud.backendId);
 
   const [checks, setChecks] = useState({ ...guardado });
   const [error, setError] = useState('');
@@ -39,7 +41,7 @@ export default function StepAutorizaciones() {
     setError('');
   }
 
-  function handleSubmit(e: { preventDefault(): void }) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
     if (!checks.habeasData || !checks.consultaCentrales || !checks.terminosCondiciones) {
       setError('Debes aceptar todas las autorizaciones para continuar');
@@ -47,6 +49,17 @@ export default function StepAutorizaciones() {
     }
     dispatch(guardarAutorizaciones(checks));
     dispatch(registrarEvento({ evento: 'AUTORIZACIONES_ACEPTADAS' }));
+
+    if (backendId) {
+      try {
+        await applicationsApi.update(backendId, {
+          pasoActual: 5,
+          autorizaciones: checks,
+        });
+      } catch {
+        // No bloquea el flujo
+      }
+    }
   }
 
   return (

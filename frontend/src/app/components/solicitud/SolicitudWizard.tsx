@@ -5,8 +5,10 @@ import { IconCircleCheck, IconAlertTriangle, IconRefresh } from '@tabler/icons-r
 import { useAppDispatch, useAppSelector } from '@/app/store';
 import {
   limpiarSolicitud, iniciarSolicitud, guardarDatosPersonales,
+  setBackendId,
   type TipoDocumento, type DatosPersonales,
 } from '@/app/store/solicitud/solicitudSlice';
+import { applicationsApi } from '@/lib/apiClient';
 import { limpiarAudit, registrarEvento } from '@/app/store/audit/auditSlice';
 import { capturarUtms } from '@/lib/utms';
 import {
@@ -106,6 +108,16 @@ export default function SolicitudWizard() {
         evento: 'AUTO_AVANCE_PERFIL',
         detalle: `${usuario.tipoDocumento} ${usuario.numeroDocumento}`,
       }));
+      // Crear la solicitud en el backend con datos personales ya disponibles
+      applicationsApi.create({
+        identidad: {
+          tipoDocumento: usuario.tipoDocumento,
+          numeroDocumento: usuario.numeroDocumento,
+        },
+        datosPersonales: dp,
+      })
+        .then((app) => dispatch(setBackendId(app.id)))
+        .catch(() => {});
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pasoActual, status]);

@@ -30,6 +30,7 @@ import {
   setPaso,
 } from '@/app/store/solicitud/solicitudSlice';
 import { registrarEvento } from '@/app/store/audit/auditSlice';
+import { applicationsApi } from '@/lib/apiClient';
 
 function formatCOP(n: number) {
   return new Intl.NumberFormat('es-CO', {
@@ -105,7 +106,7 @@ const TIPOS_EMP: Record<string, string> = {
 export default function StepResumen() {
   const dispatch = useAppDispatch();
   const { executeRecaptcha } = useGoogleReCaptcha();
-  const { id, identidad, datosPersonales, datosFinancieros, simulacion } =
+  const { id, backendId, identidad, datosPersonales, datosFinancieros, simulacion, autorizaciones } =
     useAppSelector((s) => s.solicitud);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [confirmando, setConfirmando] = useState(false);
@@ -116,17 +117,39 @@ export default function StepResumen() {
     try {
       const token = await executeRecaptcha('solicitud_confirmacion');
       if (!token) return;
-      await new Promise((r) => setTimeout(r, 1000));
+
+      if (backendId) {
+        await applicationsApi.finalize(backendId, {
+          habeasData: autorizaciones.habeasData,
+          terminosCondiciones: autorizaciones.terminosCondiciones,
+          consultaCentrales: autorizaciones.consultaCentrales,
+        });
+      } else {
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+
       dispatch(confirmarSolicitud());
       dispatch(registrarEvento({ evento: 'SOLICITUD_CONFIRMADA', detalle: id ?? '' }));
       addToast({ title: '¡Solicitud enviada!', description: `Tu solicitud ${id} fue registrada. Recibirás respuesta pronto.`, color: 'success' });
-      // La sincronización a sesionesUsuario la maneja SolicitudWizard automáticamente
+    } catch (err) {
+      addToast({
+        title: 'Error al confirmar',
+        description: err instanceof Error ? err.message : 'No fue posible finalizar la solicitud. Intenta de nuevo.',
+        color: 'danger',
+      });
     } finally {
       setConfirmando(false);
     }
   }
 
-  function handleAbandonar() {
+  async function handleAbandonar() {
+    if (backendId) {
+      try {
+        await applicationsApi.abandon(backendId, 'Abandonada por el usuario en el resumen');
+      } catch {
+        // No bloquea
+      }
+    }
     dispatch(abandonarSolicitud());
     dispatch(registrarEvento({ evento: 'SOLICITUD_ABANDONADA', detalle: id ?? '' }));
     addToast({ title: 'Solicitud pausada', description: 'Tu borrador quedó guardado. Puedes retomarlo cuando quieras.', color: 'warning' });

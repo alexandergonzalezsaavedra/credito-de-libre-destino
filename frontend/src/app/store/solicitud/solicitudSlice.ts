@@ -55,6 +55,7 @@ export interface Utms {
 
 export interface SolicitudState {
   id: string | null;
+  backendId: string | null;  // ID generado por el backend NestJS
   creadoEn: string | null;   // ISO — fecha de inicio de la solicitud
   pasoActual: number;
   status: 'idle' | 'en_proceso' | 'completada' | 'abandonada';
@@ -68,6 +69,7 @@ export interface SolicitudState {
 
 const initialState: SolicitudState = {
   id: null,
+  backendId: null,
   creadoEn: null,
   pasoActual: 0,
   status: 'idle',
@@ -162,6 +164,10 @@ const solicitudSlice = createSlice({
       if (p.simulacion) state.simulacion = p.simulacion;
       persistir(state);
     },
+    setBackendId: (state, action: PayloadAction<string>) => {
+      state.backendId = action.payload;
+      persistir(state);
+    },
     limpiarSolicitud: () => {
       if (typeof window !== 'undefined') localStorage.removeItem(STORAGE_KEY);
       return initialState;
@@ -175,6 +181,7 @@ export const {
   guardarSimulacion, guardarAutorizaciones,
   confirmarSolicitud, abandonarSolicitud,
   cargarBorrador, reanudarSolicitud, limpiarSolicitud,
+  setBackendId,
 } = solicitudSlice.actions;
 
 export default solicitudSlice.reducer;

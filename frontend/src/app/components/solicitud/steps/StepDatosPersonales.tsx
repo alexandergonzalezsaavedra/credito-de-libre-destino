@@ -7,12 +7,14 @@ import { guardarDatosPersonales, setPaso, type DatosPersonales } from '@/app/sto
 import { registrarEvento } from '@/app/store/audit/auditSlice';
 import { guardarPerfil } from '@/app/store/usuario/usuarioSlice';
 import { registrarSesionUsuario } from '@/app/store/sesiones/sesionesSlice';
+import { applicationsApi } from '@/lib/apiClient';
 
 export default function StepDatosPersonales() {
   const dispatch = useAppDispatch();
   const guardado = useAppSelector(s => s.solicitud.datosPersonales);
   const identidad = useAppSelector(s => s.solicitud.identidad);
   const usuario = useAppSelector(s => s.usuario);
+  const backendId = useAppSelector(s => s.solicitud.backendId);
 
   const [form, setForm] = useState<DatosPersonales>({ ...guardado });
   const [errores, setErrores] = useState<Partial<Record<keyof DatosPersonales, string>>>({});
@@ -45,13 +47,33 @@ export default function StepDatosPersonales() {
     setErrores(e => ({ ...e, [campo]: errs[campo] }));
   }
 
-  function handleContinuar() {
+  async function handleContinuar() {
     const errs = validar();
     if (Object.keys(errs).length) { setErrores(errs); return; }
 
     dispatch(guardarDatosPersonales(form));
     dispatch(registrarEvento({ evento: 'DATOS_PERSONALES_GUARDADOS' }));
     addToast({ title: 'Datos personales guardados', description: 'Tu información personal fue registrada correctamente.', color: 'success' });
+
+    // Sincronizar con backend
+    if (backendId) {
+      try {
+        await applicationsApi.update(backendId, {
+          pasoActual: 2,
+          datosPersonales: {
+            nombres: form.nombres,
+            apellidos: form.apellidos,
+            email: form.email,
+            telefono: form.telefono,
+            fechaNacimiento: form.fechaNacimiento,
+            direccion: form.direccion,
+            ciudad: form.ciudad,
+          },
+        });
+      } catch {
+        // No bloquea el flujo
+      }
+    }
 
     // Si el usuario aún no tiene sesión activa, registrarlo automáticamente
     if (!usuario.numeroDocumento && identidad.numeroDocumento) {

@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from '@/app/store';
 import { guardarSimulacion, setPaso, type ResultadoSimulacion } from '@/app/store/solicitud/solicitudSlice';
 import { registrarEvento } from '@/app/store/audit/auditSlice';
 import { formatearMonto, desformatearMonto } from '@/lib/formato';
+import { applicationsApi } from '@/lib/apiClient';
 
 const PLAZOS = [12, 24, 36, 48, 60, 72, 84];
 const MAX_MONTO = 99_999_999;
@@ -32,6 +33,7 @@ function formatCOP(n: number) {
 export default function StepSimulacion() {
   const dispatch = useAppDispatch();
   const guardado = useAppSelector(s => s.solicitud.simulacion);
+  const backendId = useAppSelector(s => s.solicitud.backendId);
 
   const [monto, setMonto] = useState(guardado.monto);
   const [plazoMeses, setPlazoMeses] = useState(guardado.plazoMeses);
@@ -54,16 +56,36 @@ export default function StepSimulacion() {
     const errs = validar();
     if (Object.keys(errs).length) { setErrores(errs); return; }
     setCalculando(true);
-    await new Promise(r => setTimeout(r, 600));
-    const res = calcularCuota(Number(monto), Number(plazoMeses));
-    setResultado(res);
-    setCalculando(false);
-    dispatch(registrarEvento({ evento: 'SIMULACION_CALCULADA', detalle: `Monto: ${monto}, Plazo: ${plazoMeses}` }));
-    addToast({
-      title: 'Simulación calculada',
-      description: `Cuota mensual estimada: ${formatCOP(res.cuotaMensual)} a ${plazoMeses} meses.`,
-      color: 'primary',
-    });
+    try {
+      let res: ResultadoSimulacion;
+      if (backendId) {
+        // Usar la simulación del backend (fuente de verdad)
+        const app = await applicationsApi.simulateOffer(
+          backendId,
+          Number(monto),
+          Number(plazoMeses),
+        );
+        // El backend devuelve la application actualizada con simulacion.resultado
+        const backendRes = (app as unknown as { simulacion?: { resultado?: ResultadoSimulacion } }).simulacion?.resultado;
+        res = backendRes ?? calcularCuota(Number(monto), Number(plazoMeses));
+      } else {
+        await new Promise(r => setTimeout(r, 600));
+        res = calcularCuota(Number(monto), Number(plazoMeses));
+      }
+      setResultado(res);
+      dispatch(registrarEvento({ evento: 'SIMULACION_CALCULADA', detalle: `Monto: ${monto}, Plazo: ${plazoMeses}` }));
+      addToast({
+        title: 'Simulación calculada',
+        description: `Cuota mensual estimada: ${formatCOP(res.cuotaMensual)} a ${plazoMeses} meses.`,
+        color: 'primary',
+      });
+    } catch {
+      // Fallback: calcular localmente
+      const res = calcularCuota(Number(monto), Number(plazoMeses));
+      setResultado(res);
+    } finally {
+      setCalculando(false);
+    }
   }
 
   function handleContinuar() {
