@@ -41,17 +41,17 @@ export class ApplicationsService {
   }
 
   create(dto: CreateApplicationDto): Application {
-    const user = dto.userId
+    const user = (dto.userId
       ? this.usersService.findOneById(dto.userId)
       : this.usersService.findOrCreateByDocumento(
           dto.identidad.tipoDocumento,
           dto.identidad.numeroDocumento,
-        );
+        )) as unknown as { id: string; solicitudes: Application[] };
 
     const now = new Date().toISOString();
     const app: Application = {
       id: `SOL-${uuid()}`,
-      userId: dto.userId,
+      userId: user.id,
       status: 'en_proceso',
       pasoActual: dto.datosPersonales ? 2 : 1,
       identidad: dto.identidad,
@@ -147,7 +147,11 @@ export class ApplicationsService {
 
     const autorizaciones = dto.autorizaciones ?? app.autorizaciones;
 
-    if (!app.datosPersonales || !app.datosFinancieros || !app.simulacion?.resultado) {
+    if (
+      !app.datosPersonales ||
+      !app.datosFinancieros ||
+      !app.simulacion?.resultado
+    ) {
       throw new UnprocessableEntityException(
         'La solicitud requiere datosPersonales, datosFinancieros y simulación para ser finalizada',
       );
@@ -190,7 +194,11 @@ export class ApplicationsService {
     return { message: `Solicitud '${id}' eliminada correctamente` };
   }
 
-  getEvents(id: string): { applicationId: string; events: ApplicationEvent[]; total: number } {
+  getEvents(id: string): {
+    applicationId: string;
+    events: ApplicationEvent[];
+    total: number;
+  } {
     const app = this.findOne(id);
     return {
       applicationId: id,
@@ -207,7 +215,10 @@ export class ApplicationsService {
     }
   }
 
-  private calcularCuota(monto: number, plazoMeses: number): SimulacionResultado {
+  private calcularCuota(
+    monto: number,
+    plazoMeses: number,
+  ): SimulacionResultado {
     const i = TASA_MENSUAL;
     const n = plazoMeses;
     const factor = Math.pow(1 + i, n);
